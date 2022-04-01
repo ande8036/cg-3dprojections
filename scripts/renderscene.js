@@ -105,10 +105,10 @@ function drawScene() {
     console.log(prp);
     console.log(srp);
     let n = prp.subtract(srp);
-    console.log(prp.subtract(srp))
-    console.log(n);
+    //console.log(prp.subtract(srp))
+    //console.log(n);
     n.normalize();
-    console.log(n);
+    console.log("n: " + JSON.stringify(n));
     
     let u = scene.view.vup;
     console.log(u);
@@ -121,7 +121,10 @@ function drawScene() {
     u = u.cross(n);
     console.log(u.cross(n));
     u.normalize();
-    console.log(u);
+    console.log("u: " + JSON.stringify(u));
+
+    let v = n.cross(u);
+    console.log("v: " + JSON.stringify(v));
 }
 
 // Get outcode for vertex (parallel view volume)
