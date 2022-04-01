@@ -25,10 +25,10 @@ function init() {
     scene = {
         view: {
             type: 'perspective',
-            prp: Vector3(44, 20, -16),
-            srp: Vector3(20, 20, -40),
-            vup: Vector3(0, 1, 0),
-            clip: [-19, 5, -10, 8, 12, 100]
+            "prp": [44, 20, -16],
+            "srp": [20, 20, -40],
+            "vup": [0, 1, 0],
+            "clip": [-19, 5, -10, 8, 12, 100]
         },
         models: [
             {
@@ -93,6 +93,35 @@ function drawScene() {
     //  * clip in 3D
     //  * project to 2D
     //  * draw line
+    
+    let prp = scene.view.prp;
+    prp = new Vector(prp.length, 1);
+    prp.values = scene.view.prp;
+    
+    let srp = scene.view.srp;
+    srp = new Vector(srp.length, 1);
+    srp.values = scene.view.srp;
+    
+    console.log(prp);
+    console.log(srp);
+    let n = prp.subtract(srp);
+    console.log(prp.subtract(srp))
+    console.log(n);
+    n.normalize();
+    console.log(n);
+    
+    let u = scene.view.vup;
+    console.log(u);
+    u = new Vector(u.length, 1);
+    u.values = scene.view.vup;
+    
+    console.log(u);
+    console.log(n);
+    
+    u = u.cross(n);
+    console.log(u.cross(n));
+    u.normalize();
+    console.log(u);
 }
 
 // Get outcode for vertex (parallel view volume)
