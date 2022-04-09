@@ -111,6 +111,51 @@ function drawScene() {
     console.log("v: " + JSON.stringify(v));
 
     console.log("translate Matrix: " + JSON.stringify(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip)));
+    console.log(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip));
+
+    let prpvector4 = Vector4(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z, 1);
+
+    //change prp to perspective
+
+    let transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+    let originalPrp = prpvector4;
+    
+    prpvector4 = transform.mult(prpvector4);
+    prpvector4 = Vector4(prpvector4.values[0][0], prpvector4.values[1][0], prpvector4.values[2][0], prpvector4.values[3][0]);
+    let newPrp = Vector3(((prpvector4.x - originalPrp.x) / prpvector4.w) + originalPrp.x, ((prpvector4.y - originalPrp.y) / prpvector4.w) + originalPrp.y, ((prpvector4.z - originalPrp.z) / prpvector4.w) + originalPrp.z);
+
+
+    /*let newN = newPrp.subtract(scene.view.srp);
+
+    newN.normalize();
+    console.log("newN: " + JSON.stringify(newN));
+
+    let newU = scene.view.vup;
+    console.log(newU);
+
+    newU = newU.cross(newN);
+    console.log(newU.cross(newN));
+    newU.normalize();
+    console.log("newU: " + JSON.stringify(newU));
+
+    let newV = newN.cross(newU);
+    console.log("newV: " + JSON.stringify(newV));*/
+
+    //console.log(scene.models[0].edges);
+
+    for(i in scene.models[0].vertices) {
+        //loop through every vertex
+        //transform each point
+        originalVertex = scene.models[0].vertices[i];
+        let newVertex = transform.mult(scene.models[0].vertices[i]);
+        newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
+        scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);;
+
+    }
+
+    
+
+
 }
 
 // Get outcode for vertex (parallel view volume)
