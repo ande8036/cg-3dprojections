@@ -149,13 +149,35 @@ function drawScene() {
         originalVertex = scene.models[0].vertices[i];
         let newVertex = transform.mult(scene.models[0].vertices[i]);
         newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
-        scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);;
-
+        scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);
     }
 
+    let lines = [];
 
+    for(i in scene.models[0].edges){
+        for(j in scene.models[0].edges[i].length){
+            if(j != scene.models[0].edges[i].length-1){
+                lines.push({
+                    pt0: {
+                            x: scene.models[0].vertices[scene.models[0].edges[i]].x,
+                            y: scene.models[0].vertices[scene.models[0].edges[i]].y,
+                        z: scene.models[0].vertices[scene.models[0].edges[i]].z
+                        },
+                    pt1: {
+                            x: scene.models[0].vertices[scene.models[0].edges[i+1]].x,
+                            y: scene.models[0].vertices[scene.models[0].edges[i+1]].y,
+                        z: scene.models[0].vertices[scene.models[0].edges[i+1]].z
+                        }
+                })
+            }
+        }
+    }
 
+    for(i in lines){
+        lines[i] = clipLinePerspective(lines[i], z_min)
+    }
 
+    
 }
 
 // Get outcode for vertex (parallel view volume)
