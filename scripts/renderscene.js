@@ -285,7 +285,27 @@ function clipLinePerspective(line, z_min) {
     }
 
     //case 2 both outside
-    if((out0 && out1) != 0){
+    if((out0 && LEFT) && (out1 && LEFT)){
+        return result;
+    }
+
+    if((out0 && RIGHT) && (out1 && RIGHT)){
+        return result;
+    }
+    if((out0 && LEFT) && (out1 && LEFT)){
+        return result;
+    }
+    if((out0 && BOTTOM) && (out1 && BOTTOM)){
+        return result;
+    }
+    if((out0 && TOP) && (out1 && TOP)){
+        return result;
+    }
+    if((out0 && NEAR) && (out1 && NEAR)){
+        return result;
+    }
+
+    if((out0 && FAR) && (out1 && FAR)){
         return result;
     }
 
