@@ -39,7 +39,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 
     // 3. shear such that CW is on the z-axis
     
-    let shx = (-1 * dop[0])/dop[2];
+    let shx = (-1 * dop[0])/dop[2];//changing the dops to cw fixes this, but that doesn't seem to line up with the math
     let shy = (-1 * dop[1])/dop[2];
     let shearMatrix = Mat4x4ShearXY(prpvector4, shx, shy); 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
@@ -48,7 +48,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let spery = (2 * clip[4])/((clip[3] - clip[2]) * clip[5]);
     let sperz = 1/clip[5];
 
-    let scaleMatrix = Mat4x4Scale(prpvector4, .7, .7, .7);
+    let scaleMatrix = Mat4x4Scale(prpvector4, sperx, spery, sperz);
     
     //console.log(transMatrix);
 
