@@ -2,6 +2,8 @@ let view;
 let ctx;
 let scene;
 let start_time;
+let w = 800;
+let h = 600;
 
 const LEFT =   32; // binary 100000
 const RIGHT =  16; // binary 010000
@@ -13,8 +15,7 @@ const FLOAT_EPSILON = 0.000001;
 
 // Initialization function - called when web page loads
 function init() {
-    let w = 800;
-    let h = 600;
+    
     view = document.getElementById('view');
     view.width = w;
     view.height = h;
@@ -150,6 +151,7 @@ function drawScene() {
         let newVertex = transform.mult(scene.models[0].vertices[i]);
         newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
         scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);
+        console.log(scene.models[0].vertices[i]);
     }
 
     let lines = [];
@@ -171,14 +173,12 @@ function drawScene() {
                         }
                 };
                 lines.push(jsonElement);
-                console.log("json: " + JSON.stringify(jsonElement));
             }
         }
     }
 
     for(i in lines){
-        console.log("lines: " + lines[i]);
-        lines[i] = clipLinePerspective(lines[i], -1)
+        //lines[i] = clipLinePerspective(lines[i], scene.view.clip[4]);
     }
 
     let k = 0;
@@ -186,20 +186,41 @@ function drawScene() {
     for(i in scene.models[0].edges){
         for(let j = 0; j < scene.models[0].edges[i].length; j++){
             if(j != scene.models[0].edges[i].length-1){
-                scene.models[0].vertices[scene.models[0].edges[i][j]] = Vector4(lines[k].pt0.x, lines[k].pt0.y, lines[k].pt0.z, 1);
+                try{
+                    scene.models[0].vertices[scene.models[0].edges[i][j]] = Vector4(lines[k].pt0.x, lines[k].pt0.y, lines[k].pt0.z, 1);
+                } catch {
+                    scene.models[0].vertices[scene.models[0].edges[i][j]] = null;
+                }
+                
                 k++;
             }
         }
     }
 
     for(i in scene.models[0].vertices){
-        scene.models[0].vertices[i] =  scene.models[0].vertices[i].mult(mat4x4MPer());
+        //console.log(scene.models[0].vertices[i]);
+        scene.models[0].vertices[i] =  mat4x4MPer().mult(scene.models[0].vertices[i]);
     }
+    console.log(scene.models[0].vertices[scene.models[0].edges[0][0]]);
+    console.log(scene.models[0].edges[0][0]);
 
     for(i in scene.models[0].edges){
         for(let j = 0; j < scene.models[0].edges[i].length; j++){
             if(j != scene.models[0].edges[i].length-1){
-                drawLine(scene.models[0].edges[i][j].x, scene.models[0].edges[i][j].y, scene.models[0].edges[i][j+1].x, scene.models[0].edges[i][j+1].y);
+                console.log("i =" + i);
+                console.log("j =" + j);
+                console.log("j+1 =" + j+1);
+                console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[0] + (w/2));
+                console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[1] +(h/2));
+                let test = scene.models[0].vertices[scene.models[0].edges[i][j]].values[0];
+                console.log("Test = " + test);
+                test += w;
+                console.log("Test = " + test);
+                console.log(w);
+                drawLine(parseInt(scene.models[0].vertices[scene.models[0].edges[i][j]].values[0]) + (w/2), 
+                parseInt(scene.models[0].vertices[scene.models[0].edges[i][j]].values[1]) +(h/2), 
+                parseInt(scene.models[0].vertices[scene.models[0].edges[i][j+1]].values[0])+(w/2), 
+                parseInt(scene.models[0].vertices[scene.models[0].edges[i][j+1]].values[1])+(h/2));
             }
         }
     }
@@ -290,9 +311,6 @@ function clipLinePerspective(line, z_min) {
     }
 
     if((out0 && RIGHT) && (out1 && RIGHT)){
-        return result;
-    }
-    if((out0 && LEFT) && (out1 && LEFT)){
         return result;
     }
     if((out0 && BOTTOM) && (out1 && BOTTOM)){
