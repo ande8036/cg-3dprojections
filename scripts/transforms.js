@@ -21,7 +21,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     
     // 1. translate PRP to origin
     let prpvector4 = Vector4(prp.x, prp.y, prp.z, 1);
-    console.log("test: " + JSON.stringify(prpvector4));
+    //console.log("test: " + JSON.stringify(prpvector4));
     let transMatrix =  Mat4x4Translate(prpvector4, prp.x * -1, prp.y * -1, prp.z * -1);
 
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
@@ -31,7 +31,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let u = vup;
     u = u.cross(n);
     u.normalize();
-    console.log(u);
+    //console.log(u);
 
     let v = n.cross(u);
 
@@ -50,7 +50,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 
     let scaleMatrix = Mat4x4Scale(prpvector4, sperx, spery, sperz);
     
-    console.log(transMatrix);
+    //console.log(transMatrix);
 
     //let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix, mat4x4MPer()]);
     let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix]);
@@ -95,7 +95,7 @@ function Mat4x4Translate(mat4x4, tx, ty, tz) {
                               [0, 1, 0, ty],
                               [0, 0, 1, tz],
                               [0, 0, 0, 1]];
-    console.log("test1: " + JSON.stringify(mat4x4));
+    //console.log("test1: " + JSON.stringify(mat4x4));
     return translateMat4x4;
     
 }
@@ -107,7 +107,7 @@ function Mat4x4Scale(mat4x4, sx, sy, sz) {
                           [0, sy, 0, 0],
                           [0, 0, sz, 0],
                           [0, 0, 0, 1]];
-    console.log("test: " + scaleMat4x4.mult(mat4x4));
+    //console.log("test: " + scaleMat4x4.mult(mat4x4));
     return scaleMat4x4;
 }
 
@@ -118,7 +118,7 @@ function Mat4x4RotateX(mat4x4, theta) {
                           [0, Math.cos(theta), (-1 * Math.sin(theta)), 0],
                           [0, Math.sin(theta), Math.cos(theta), 0],
                           [0, 0, 0, 1]];
-    console.log("test: " + rotatexMat4x4.mult(mat4x4));
+    //console.log("test: " + rotatexMat4x4.mult(mat4x4));
     return rotatexMat4x4;
 }
 
@@ -129,7 +129,7 @@ function Mat4x4RotateY(mat4x4, theta) {
                           [0, 1, 0, 0],
                           [(-1 * Math.sin(theta)), 0, Math.cos(theta), 0],
                           [0, 0, 0, 1]];
-    console.log("test: " + rotateyMat4x4.mult(mat4x4));
+    //console.log("test: " + rotateyMat4x4.mult(mat4x4));
     return rotateyMat4x4;
 }
 
@@ -140,7 +140,7 @@ function Mat4x4RotateZ(mat4x4, theta) {
                           [Math.sin(theta), Math.cos(theta), 0, 0],
                           [0, 0, 1, 0],
                           [0, 0, 0, 1]];
-    console.log("test: " + rotatezMat4x4.mult(mat4x4));
+    //console.log("test: " + rotatezMat4x4.mult(mat4x4));
     return rotatezMat4x4;
 }
 
@@ -162,7 +162,7 @@ function Mat4x4ShearXY(mat4x4, shx, shy) {
                           [0, 1, shy, 0],
                           [0, 0, 1, 0],
                           [0, 0, 0, 1]];
-    console.log("test: " + shearMat4x4.mult(mat4x4));
+    //console.log("test: " + shearMat4x4.mult(mat4x4));
     return shearMat4x4;
 }
 

@@ -97,21 +97,21 @@ function drawScene() {
     let n = scene.view.prp.subtract(scene.view.srp);
 
     n.normalize();
-    console.log("n: " + JSON.stringify(n));
+    //console.log("n: " + JSON.stringify(n));
 
     let u = scene.view.vup;
-    console.log(u);
+    //console.log(u);
 
     u = u.cross(n);
-    console.log(u.cross(n));
+    //console.log(u.cross(n));
     u.normalize();
-    console.log("u: " + JSON.stringify(u));
+    //console.log("u: " + JSON.stringify(u));
 
     let v = n.cross(u);
-    console.log("v: " + JSON.stringify(v));
+    //console.log("v: " + JSON.stringify(v));
 
-    console.log("translate Matrix: " + JSON.stringify(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip)));
-    console.log(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip));
+    //console.log("translate Matrix: " + JSON.stringify(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip)));
+    //console.log(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip));
 
     let prpvector4 = Vector4(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z, 1);
 
@@ -153,34 +153,38 @@ function drawScene() {
     }
 
     let lines = [];
+    let jsonElement;
 
     for(i in scene.models[0].edges){
-        for(j in scene.models[0].edges[i].length){
+        for(let j = 0; j < scene.models[0].edges[i].length; j++){
             if(j != scene.models[0].edges[i].length-1){
-                lines.push({
+                jsonElement = {
                     pt0: {
-                            x: scene.models[0].vertices[scene.models[0].edges[i]].x,
-                            y: scene.models[0].vertices[scene.models[0].edges[i]].y,
-                        z: scene.models[0].vertices[scene.models[0].edges[i]].z
+                            x: scene.models[0].vertices[scene.models[0].edges[i][j]].x,
+                            y: scene.models[0].vertices[scene.models[0].edges[i][j]].y,
+                        z: scene.models[0].vertices[scene.models[0].edges[i][j]].z
                         },
                     pt1: {
-                            x: scene.models[0].vertices[scene.models[0].edges[i+1]].x,
-                            y: scene.models[0].vertices[scene.models[0].edges[i+1]].y,
-                        z: scene.models[0].vertices[scene.models[0].edges[i+1]].z
+                            x: scene.models[0].vertices[scene.models[0].edges[i][j+1]].x,
+                            y: scene.models[0].vertices[scene.models[0].edges[i][j+1]].y,
+                        z: scene.models[0].vertices[scene.models[0].edges[i][j+1]].z
                         }
-                })
+                };
+                lines.push(jsonElement);
+                console.log("json: " + JSON.stringify(jsonElement));
             }
         }
     }
 
     for(i in lines){
-        lines[i] = clipLinePerspective(lines[i], z_min)
+        console.log("lines: " + lines[i]);
+        lines[i] = clipLinePerspective(lines[i], -1)
     }
 
     let k = 0;
 
     for(i in scene.models[0].edges){
-        for(j in scene.models[0].edges[i].length){
+        for(let j = 0; j < scene.models[0].edges[i].length; j++){
             if(j != scene.models[0].edges[i].length-1){
                 scene.models[0].vertices[scene.models[0].edges[i][j]] = Vector4(lines[k].pt0.x, lines[k].pt0.y, lines[k].pt0.z, 1);
                 k++;
@@ -189,11 +193,11 @@ function drawScene() {
     }
 
     for(i in scene.models[0].vertices){
-        scene.models[0].vertices[i] = mat4x4MPer().mult(scene.models[0].vertices[i]);
+        scene.models[0].vertices[i] =  scene.models[0].vertices[i].mult(mat4x4MPer());
     }
 
     for(i in scene.models[0].edges){
-        for(j in scene.models[0].edges[i].length){
+        for(let j = 0; j < scene.models[0].edges[i].length; j++){
             if(j != scene.models[0].edges[i].length-1){
                 drawLine(scene.models[0].edges[i][j].x, scene.models[0].edges[i][j].y, scene.models[0].edges[i][j+1].x, scene.models[0].edges[i][j+1].y);
             }
@@ -276,7 +280,7 @@ function clipLinePerspective(line, z_min) {
 
     let outCheck = out0||out1;
     //case 1, both inside
-    if(outcheck == 0){
+    if(outCheck == 0){
         return line;
     }
 
