@@ -48,7 +48,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let spery = (2 * clip[4])/((clip[3] - clip[2]) * clip[5]);
     let sperz = 1/clip[5];
 
-    let scaleMatrix = Mat4x4Scale(prpvector4, sperx, spery, sperz);
+    let scaleMatrix = Mat4x4Scale(prpvector4, .7, .7, .7);
     
     //console.log(transMatrix);
 
