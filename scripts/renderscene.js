@@ -153,7 +153,7 @@ function drawScene() {
 
     }
 
-    
+
 
 
 }
@@ -287,6 +287,47 @@ function clipLinePerspective(line, z_min) {
 
     //case 4 0 out 1 in
 
+    if((out0 && LEFT != LEFT) && (out1 && LEFT) == LEFT){ //out0 is not outside of left and out1 is
+        t = (-line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+        line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
+        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
+        line.pt0.x = 0;
+    } 
+
+    if((out0 && RIGHT != RIGHT) && (out1 && RIGHT) == RIGHT){ //out0 is not outside of left and out1 is
+        t = (line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+        line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
+        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
+        line.pt0.x = view.width;
+    } 
+
+    if((out0 && BOTTOM != BOTTOM) && (out1 && BOTTOM) == BOTTOM){ //out0 is not outside of left and out1 is
+        t = (line.pt1.y + line.pt1.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        line.pt0.y = 0;
+        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
+        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
+    } 
+
+    if((out0 && TOP != TOP) && (out1 && TOP) == TOP){ //out0 is not outside of left and out1 is
+        t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        line.pt0.y = view.height;
+        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
+        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
+    } 
+
+    if((out0 && NEAR != NEAR) && (out1 && NEAR) == NEAR){ //out0 is not outside of left and out1 is
+        t = (line.pt1.z - z_min)/(-(line.pt0.z/ line.pt1.z));
+        line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
+        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
+        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
+    } 
+
+    if((out0 && FAR != FAR) && (out1 && FAR) == FAR){ //out0 is not outside of left and out1 is
+        t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        line.pt0.y = line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
+        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
+        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
+    } 
 
     
     /*if(outCheck != 0){
