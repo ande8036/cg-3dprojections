@@ -17,6 +17,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     //        l   r   b   t   n   f
     let cw = [(clip[0] + clip[1])/2, (clip[2] + clip[3])/2, (-1 * clip[4])];
     let dop = [cw[0] - prp.x, cw[1] - prp.y, cw[2] - prp.z];
+    console.log("dop: " + dop);
     
     
     // 1. translate PRP to origin
@@ -39,8 +40,8 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 
     // 3. shear such that CW is on the z-axis
     
-    let shx = (-1 * dop[0])/dop[2];
-    let shy = (-1 * dop[1])/dop[2];
+    let shx = (-1 * cw[0])/cw[2];
+    let shy = (-1 * cw[1])/cw[2];
     let shearMatrix = Mat4x4ShearXY(prpvector4, shx, shy); 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
     
@@ -48,7 +49,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let spery = (2 * clip[4])/((clip[3] - clip[2]) * clip[5]);
     let sperz = 1/clip[5];
 
-    let scaleMatrix = Mat4x4Scale(prpvector4, .7, .7, .7);
+    let scaleMatrix = Mat4x4Scale(prpvector4, sperx, spery, sperz);
     
     //console.log(transMatrix);
 
