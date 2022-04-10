@@ -40,7 +40,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 
     // 3. shear such that CW is on the z-axis
     
-    let shx = (-1 * cw[0])/cw[2];
+    let shx = (-1 * cw[0])/cw[2];//changing the dops to cw fixes this, but that doesn't seem to line up with the math
     let shy = (-1 * cw[1])/cw[2];
     let shearMatrix = Mat4x4ShearXY(prpvector4, shx, shy); 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
