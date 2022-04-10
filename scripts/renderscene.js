@@ -226,10 +226,91 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
+    let t = 0;
+    let x = 0;
+    let y = 0;
+    let z = 0;
+
+    let outCheck = out0||out1;
+    //case 1, both inside
+    if(outcheck == 0){
+        return line;
+    }
+
+    //case 2 both outside
+    if((out0 && out1) != 0){
+        return result;
+    }
+
+    //case 3 0 inside 1 out
+    if((out0 && LEFT != LEFT) && (out1 && LEFT) == LEFT){ //out0 is not outside of left and out1 is
+        t = (-line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
+        line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
+        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt1.x = 0;
+    } 
+
+    if((out0 && RIGHT != RIGHT) && (out1 && RIGHT) == RIGHT){ //out0 is not outside of left and out1 is
+        t = (line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
+        line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
+        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt1.x = view.width;
+    } 
+
+    if((out0 && BOTTOM != BOTTOM) && (out1 && BOTTOM) == BOTTOM){ //out0 is not outside of left and out1 is
+        t = (line.pt0.y + line.pt0.z)/((line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        line.pt1.y = 0;
+        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
+    } 
+
+    if((out0 && TOP != TOP) && (out1 && TOP) == TOP){ //out0 is not outside of left and out1 is
+        t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        line.pt1.y = view.height;
+        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
+    } 
+
+    if((out0 && NEAR != NEAR) && (out1 && NEAR) == NEAR){ //out0 is not outside of left and out1 is
+        t = (line.pt0.z - z_min)/(-(line.pt1.z/ line.pt0.z));
+        line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
+        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
+    } 
+
+    if((out0 && FAR != FAR) && (out1 && FAR) == FAR){ //out0 is not outside of left and out1 is
+        t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        line.pt1.y = line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
+        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
+    } 
+
+    //case 4 0 out 1 in
+
+
+    
+    /*if(outCheck != 0){
+        if(out0 && LEFT == LEFT) {
+            t = (0 - line.pt0.x)/(line.pt1.x - line.pt0.x);
+            y = (1-t)*line.pt0.y + t*line.pt1.y;
+        }
+        if((out0 && LEFT == LEFT) && ) {
+            t = (0 - line.pt0.x)/(line.pt1.x - line.pt0.x);
+            y = (1-t)*line.pt0.y + t*line.pt1.y;
+        }
+        
+    }*/
     
     // TODO: implement clipping here!
-    
-    return result;
+    // t = (x -x0)/(x1-x0)
+    // L < x=0
+
+    //T > height
+    //R > width
+    //B < 0
+    //N < zmin
+    //F > zmax
+    return line;
 }
 
 // Called when user presses a key on the keyboard down 
