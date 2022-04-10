@@ -177,7 +177,28 @@ function drawScene() {
         lines[i] = clipLinePerspective(lines[i], z_min)
     }
 
-    
+    let k = 0;
+
+    for(i in scene.models[0].edges){
+        for(j in scene.models[0].edges[i].length){
+            if(j != scene.models[0].edges[i].length-1){
+                scene.models[0].vertices[scene.models[0].edges[i][j]] = Vector4(lines[k].pt0.x, lines[k].pt0.y, lines[k].pt0.z, 1);
+                k++;
+            }
+        }
+    }
+
+    for(i in scene.models[0].vertices){
+        scene.models[0].vertices[i] = mat4x4MPer().mult(scene.models[0].vertices[i]);
+    }
+
+    for(i in scene.models[0].edges){
+        for(j in scene.models[0].edges[i].length){
+            if(j != scene.models[0].edges[i].length-1){
+                drawLine(scene.models[0].edges[i][j].x, scene.models[0].edges[i][j].y, scene.models[0].edges[i][j+1].x, scene.models[0].edges[i][j+1].y);
+            }
+        }
+    }
 }
 
 // Get outcode for vertex (parallel view volume)

@@ -53,7 +53,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     console.log(transMatrix);
 
     //let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix, mat4x4MPer()]);
-    let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix, mat4x4MPer()]);
+    let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix]);
     return transform;
 }
 
