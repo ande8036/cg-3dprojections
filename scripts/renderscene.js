@@ -70,49 +70,93 @@ function init() {
 
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
+
+    start_time = performance.now(); // current timestamp in milliseconds
+    window.requestAnimationFrame(animate);
+    let direction = 'none';
+    if(document.getElementById('none').checked || direction == 'none'){
+        console.log("none checked");
+        direction = 'none';
+        animate(start_time, direction);
+    }
     
     const radios = document.querySelectorAll('input')
     for (const radio of radios) {
         radio.onclick = (e) => {
-            if(document.getElementById('x').checked){
-                //console.log("x checked");
-                animate(start_time, "x");
+            if(document.getElementById('none').checked){
+                console.log("none checked");
+                direction = 'none';
+                animate(start_time, direction);
             }
-            if(document.getElementById('y').checked){
-                //console.log("y checked");
-                animate(start_time, "y");
+            else if(document.getElementById('x').checked){
+                console.log("x checked");
+                direction = 'x';
+                animate(start_time, direction);
             }
-            if(document.getElementById('z').checked){
-                //console.log("z checked");
-                animate(start_time, "z");
+            else if(document.getElementById('y').checked){
+                console.log("y checked");
+                direction = 'y';
+                animate(start_time, direction);
+            }
+            else if(document.getElementById('z').checked){
+                console.log("z checked");
+                direction = 'z'
+                animate(start_time, direction);
             }
         }
-    }
+    } 
 }
 
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp, direction) {
     // step 1: calculate time (time since start)
     let time = timestamp - start_time;
+    console.log("direction " + direction)
 
     // step 2: transform models based on time
     // TODO: implement this!
     let transform;
     let originalVertex;
-    /*transform = Mat4x4RotateX(null, time%36);
-    for(i in scene.models[0].vertices) {
-        originalVertex = scene.models[0].vertices[i];
-        let newVertex = transform.mult(scene.models[0].vertices[i]);
-        newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
-        scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);
+    if(direction == 'none'){
+        console.log("set to none");
+        drawScene();
     }
-*/
-    // step 3: draw scene
-    drawScene();
+    else {
+        if(direction == 'x'){
+            transform = Mat4x4RotateX(null, time%36);
+            for(i in scene.models[0].vertices) {
+                originalVertex = scene.models[0].vertices[i];
+                let newVertex = transform.mult(scene.models[0].vertices[i]);
+                newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
+                scene.models[0].vertices[i] = Vector4(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z, 1);
+            }
+            drawScene();
+        }
+        if(direction == 'y'){
+            transform = Mat4x4RotateY(null, time%36);
+            for(i in scene.models[0].vertices) {
+                originalVertex = scene.models[0].vertices[i];
+                let newVertex = transform.mult(scene.models[0].vertices[i]);
+                newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
+                scene.models[0].vertices[i] = Vector4(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z, 1);
+            }
+            drawScene();
+        }
+        if(direction == 'z'){
+            transform = Mat4x4RotateZ(null, time%36);
+            for(i in scene.models[0].vertices) {
+                originalVertex = scene.models[0].vertices[i];
+                let newVertex = transform.mult(scene.models[0].vertices[i]);
+                newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
+                scene.models[0].vertices[i] = Vector4(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z, 1);
+            }
+            drawScene();
+        }
+    }
 
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-   // window.requestAnimationFrame(animate);
+    //window.requestAnimationFrame(animate);
 }
 
 // Main drawing code - use information contained in variable `scene`
