@@ -72,24 +72,54 @@ function init() {
     document.addEventListener('keydown', onKeyDown, false);
     
     // start animation loop
+    let animateDirection = "test";
+    const btn = document.querySelector('#btn');        
+    const radioButtons = document.querySelectorAll('input[name="direction"]');
+    btn.addEventListener("click", () => {
+        for (const radioButton of radioButtons) {
+            if (radioButton.checked) {
+                animateDirection = radioButton.value;
+            }
+        }
+    });
     start_time = performance.now(); // current timestamp in milliseconds
     window.requestAnimationFrame(animate);
+    console.log(animateDirection);
+
+    if(animateDirection == "X"){
+        animate(start_time, "x");
+    }
+    if(animateDirection == "Y"){
+        animate(start_time, "y");
+    }
+    if(animateDirection == "Z"){
+        animate(start_time, "z");
+    }
 }
 
 // Animation loop - repeatedly calls rendering code
-function animate(timestamp) {
+function animate(timestamp, direction) {
     // step 1: calculate time (time since start)
     let time = timestamp - start_time;
-    
+
     // step 2: transform models based on time
     // TODO: implement this!
+    let transform;
+    let originalVertex;
+    transform = Mat4x4RotateX(null, time%36);
+    for(i in scene.models[0].vertices) {
+        originalVertex = scene.models[0].vertices[i];
+        let newVertex = transform.mult(scene.models[0].vertices[i]);
+        newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
+        scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);
+    }
 
     // step 3: draw scene
     drawScene();
 
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    // window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(animate);
 }
 
 // Main drawing code - use information contained in variable `scene`
