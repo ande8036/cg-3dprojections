@@ -169,27 +169,6 @@ function drawScene() {
     //  * clip in 3D
     //  * project to 2D
     //  * draw line
-    
-    let n = scene.view.prp.subtract(scene.view.srp);
-
-    n.normalize();
-    //console.log("n: " + JSON.stringify(n));
-
-    let u = scene.view.vup;
-    //console.log(u);
-
-    u = u.cross(n);
-    //console.log(u.cross(n));
-    u.normalize();
-    console.log("u: " + JSON.stringify(u));
-
-    let v = n.cross(u);
-    //console.log("v: " + JSON.stringify(v));
-
-    //console.log("translate Matrix: " + JSON.stringify(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip)));
-    //console.log(mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip));
-
-    let prpvector4 = Vector4(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z, 1);
 
     //change prp to perspective
     let transform;
@@ -200,112 +179,37 @@ function drawScene() {
     else{
         transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
     }
-    let originalPrp = prpvector4;
-    
-    //prpvector4 = transform.mult(prpvector4);
-    prpvector4 = Matrix.multiply([transform, prpvector4]);
-    prpvector4 = Vector4(prpvector4.values[0][0], prpvector4.values[1][0], prpvector4.values[2][0], prpvector4.values[3][0]);
-    let newPrp = Vector3(((prpvector4.x - originalPrp.x) / prpvector4.w) + originalPrp.x, ((prpvector4.y - originalPrp.y) / prpvector4.w) + originalPrp.y, ((prpvector4.z - originalPrp.z) / prpvector4.w) + originalPrp.z);
 
-
-    /*let newN = newPrp.subtract(scene.view.srp);
-
-    newN.normalize();
-    console.log("newN: " + JSON.stringify(newN));
-
-    let newU = scene.view.vup;
-    console.log(newU);
-
-    newU = newU.cross(newN);
-    console.log(newU.cross(newN));
-    newU.normalize();
-    console.log("newU: " + JSON.stringify(newU));
-
-    let newV = newN.cross(newU);
-    console.log("newV: " + JSON.stringify(newV));*/
-
-    //console.log(scene.models[0].edges);
+    let transformedVerts = [];
 
     for(i in scene.models[0].vertices) {
         //loop through every vertex
         //transform each point
-        originalVertex = scene.models[0].vertices[i];
-        let newVertex = transform.mult(scene.models[0].vertices[i]);
-        newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
-        scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);
-        //console.log(scene.models[0].vertices[i]);
+        let originalVertex = scene.models[0].vertices[i];
+        let newVertex = Matrix.multiply([transform, originalVertex]); //create transformed verticies by multiplying by all initial matricies
+        transformedVerts.push(newVertex);
     }
 
     let lines = [];
-    let jsonElement;
 
-    for(i in scene.models[0].edges){
-        for(let j = 0; j < scene.models[0].edges[i].length; j++){
-            if(j != scene.models[0].edges[i].length-1){
-                jsonElement = {
-                    pt0: {
-                            x: scene.models[0].vertices[scene.models[0].edges[i][j]].x,
-                            y: scene.models[0].vertices[scene.models[0].edges[i][j]].y,
-                        z: scene.models[0].vertices[scene.models[0].edges[i][j]].z
-                        },
-                    pt1: {
-                            x: scene.models[0].vertices[scene.models[0].edges[i][j+1]].x,
-                            y: scene.models[0].vertices[scene.models[0].edges[i][j+1]].y,
-                        z: scene.models[0].vertices[scene.models[0].edges[i][j+1]].z
-                        }
-                };
-                lines.push(jsonElement);
-            }
+    for(let i = 0; i < scene.models[0].edges.length; i++){ //store them in a  new array
+        for(let j = 0; j < scene.models[0].edges[i].length - 1; j++){
+                lines.push([
+                    transformedVerts[scene.models[0].edges[i][j]],
+                    transformedVerts[scene.models[0].edges[i][j+1]]
+                ]);
         }
     }
-
     for(i in lines){
-        //lines[i] = clipLinePerspective(lines[i], scene.view.clip[4]);
+        let z_min = -1 * (scene.view.clip[4]/scene.view.clip[5]);
+        let line = {pt0: lines[i][0], pt1: lines[i][1]};
+        //lines[i] = clipLinePerspective(line, z_min); //put back once clipping is working
+        lines[i]=line;
+        let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt0]); //transform each point
+        let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt1]); //in homogeneous points
+        drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
     }
-
-    let k = 0;
-
-    for(i in scene.models[0].edges){
-        for(let j = 0; j < scene.models[0].edges[i].length; j++){
-            if(j != scene.models[0].edges[i].length-1){
-                try{
-                    scene.models[0].vertices[scene.models[0].edges[i][j]] = Vector4(lines[k].pt0.x, lines[k].pt0.y, lines[k].pt0.z, 1);
-                } catch {
-                    scene.models[0].vertices[scene.models[0].edges[i][j]] = null;
-                }
-                
-                k++;
-            }
-        }
-    }
-
-    for(i in scene.models[0].vertices){
-        //console.log(scene.models[0].vertices[i]);
-        scene.models[0].vertices[i] =  mat4x4MPer().mult(scene.models[0].vertices[i]);
-    }
-    //console.log(scene.models[0].vertices[scene.models[0].edges[0][0]]);
-    //console.log(scene.models[0].edges[0][0]);
-
-    for(i in scene.models[0].edges){
-        for(let j = 0; j < scene.models[0].edges[i].length; j++){
-            if(j != scene.models[0].edges[i].length-1){
-                //console.log("i =" + i);
-                //console.log("j =" + j);
-                //console.log("j+1 =" + j+1);
-                //console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[0] + (w/2));
-                //console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[1] +(h/2));
-                let test = scene.models[0].vertices[scene.models[0].edges[i][j]].values[0];
-                //console.log("Test = " + test);
-                test += w;
-                //console.log("Test = " + test);
-                //console.log(w);
-                drawLine(parseInt(scene.models[0].vertices[scene.models[0].edges[i][j]].values[0]) + (w/2), 
-                parseInt(scene.models[0].vertices[scene.models[0].edges[i][j]].values[1]) +(h/2), 
-                parseInt(scene.models[0].vertices[scene.models[0].edges[i][j+1]].values[0])+(w/2), 
-                parseInt(scene.models[0].vertices[scene.models[0].edges[i][j+1]].values[1])+(h/2));
-            }
-        }
-    }
+    //console.log(lines);
 }
 
 // Get outcode for vertex (parallel view volume)
@@ -381,120 +285,92 @@ function clipLinePerspective(line, z_min) {
     let y = 0;
     let z = 0;
 
-    let outCheck = out0||out1;
+    let outCheck = out0|out1;
     //case 1, both inside
     if(outCheck == 0){
         return line;
     }
 
     //case 2 both outside
-    if((out0 && LEFT) && (out1 && LEFT)){
+    if((out0 & LEFT) && (out1 & LEFT)){
         return result;
     }
-
-    if((out0 && RIGHT) && (out1 && RIGHT)){
+    if((out0 & RIGHT) && (out1 & RIGHT)){
         return result;
     }
-    if((out0 && BOTTOM) && (out1 && BOTTOM)){
+    if((out0 & BOTTOM) && (out1 & BOTTOM)){
         return result;
     }
-    if((out0 && TOP) && (out1 && TOP)){
+    if((out0 & TOP) && (out1 & TOP)){
         return result;
     }
-    if((out0 && NEAR) && (out1 && NEAR)){
+    if((out0 & NEAR) && (out1 & NEAR)){
         return result;
     }
-
-    if((out0 && FAR) && (out1 && FAR)){
+    if((out0 & FAR) && (out1 & FAR)){
         return result;
     }
 
     //case 3 0 inside 1 out
-    if((out0 && LEFT != LEFT) && (out1 && LEFT) == LEFT){ //out0 is not outside of left and out1 is
-        t = (-line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
+    if(out1 != 0) { //if out1 is out
+        if((out0 & LEFT != LEFT) && (out1 & LEFT) == LEFT){ //out0 is not outside of left and out1 is
+            t = (-line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
+        } 
+    
+        if((out0 & RIGHT != RIGHT) && (out1 & RIGHT) == RIGHT){ 
+            t = (line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
+        } 
+    
+        if((out0 & BOTTOM != BOTTOM) && (out1 & BOTTOM) == BOTTOM){ 
+            t = (line.pt0.y + line.pt0.z)/((line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        } 
+    
+        if((out0 & TOP != TOP) && (out1 & TOP) == TOP){
+            t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        } 
+    
+        if((out0 & NEAR != NEAR) && (out1 & NEAR) == NEAR){ 
+            t = (line.pt0.z - z_min)/(-(line.pt1.z/ line.pt0.z));
+        } 
+    
+        if((out0 & FAR != FAR) && (out1 & FAR) == FAR){ 
+            t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        } 
+        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
         line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
         line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
-        line.pt1.x = 0;
-    } 
-
-    if((out0 && RIGHT != RIGHT) && (out1 && RIGHT) == RIGHT){ 
-        t = (line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
-        line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
-        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
-        line.pt1.x = view.width;
-    } 
-
-    if((out0 && BOTTOM != BOTTOM) && (out1 && BOTTOM) == BOTTOM){ 
-        t = (line.pt0.y + line.pt0.z)/((line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
-        line.pt1.y = 0;
-        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
-        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
-    } 
-
-    if((out0 && TOP != TOP) && (out1 && TOP) == TOP){
-        t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
-        line.pt1.y = view.height;
-        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
-        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
-    } 
-
-    if((out0 && NEAR != NEAR) && (out1 && NEAR) == NEAR){ 
-        t = (line.pt0.z - z_min)/(-(line.pt1.z/ line.pt0.z));
-        line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
-        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
-        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
-    } 
-
-    if((out0 && FAR != FAR) && (out1 && FAR) == FAR){ 
-        t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
-        line.pt1.y = line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
-        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
-        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
-    } 
+    }
 
     //case 4 0 out 1 in
-
-    if((out1 && LEFT != LEFT) && (out0 && LEFT) == LEFT){ 
-        t = (-line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
-        line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
-        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
-        line.pt0.x = 0;
-    } 
-
-    if((out1 && RIGHT != RIGHT) && (out0 && RIGHT) == RIGHT){ 
-        t = (line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
-        line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
-        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
-        line.pt0.x = view.width;
-    } 
-
-    if((out1 && BOTTOM != BOTTOM) && (out0 && BOTTOM) == BOTTOM){
-        t = (line.pt1.y + line.pt1.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
-        line.pt0.y = 0;
-        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
-        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
-    } 
-
-    if((out1 && TOP != TOP) && (out0 && TOP) == TOP){ 
-        t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
-        line.pt0.y = view.height;
-        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
-        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
-    } 
-
-    if((out1 && NEAR != NEAR) && (out0 && NEAR) == NEAR){ 
-        t = (line.pt1.z - z_min)/(-(line.pt0.z/ line.pt1.z));
-        line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
-        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
-        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
-    } 
-
-    if((out1 && FAR != FAR) && (out0 && FAR) == FAR){ 
-        t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
-        line.pt0.y = line.pt0.y = (1-t)*line.pt1.y + t*line.pt0.y;
-        line.pt0.z = (1-t)*line.pt1.z + t*line.pt0.z;
-        line.pt0.x = (1-t)*line.pt1.x + t*line.pt0.x;
-    } 
+    else if(out0 != 0){ //if out0 is outside
+        if((out1 & LEFT != LEFT) && (out0 & LEFT) == LEFT){ 
+            t = (-line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+        } 
+    
+        if((out1 & RIGHT != RIGHT) && (out0 & RIGHT) == RIGHT){ 
+            t = (line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+    
+        } 
+    
+        if((out1 & BOTTOM != BOTTOM) && (out0 & BOTTOM) == BOTTOM){
+            t = (line.pt1.y + line.pt1.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        } 
+    
+        if((out1 & TOP != TOP) && (out0 & TOP) == TOP){ 
+            t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        } 
+    
+        if((out1 & NEAR != NEAR) && (out0 & NEAR) == NEAR){ 
+            t = (line.pt1.z - z_min)/(-(line.pt0.z/ line.pt1.z));
+        } 
+    
+        if((out1 & FAR != FAR) && (out0 & FAR) == FAR){ 
+            t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        } 
+        line.pt0.x = (1-t)*line.pt0.x + t*line.pt1.x;
+        line.pt0.y = (1-t)*line.pt0.y + t*line.pt1.y;
+        line.pt0.z = (1-t)*line.pt0.z + t*line.pt1.z;
+    }
 
     
     /*if(outCheck != 0){

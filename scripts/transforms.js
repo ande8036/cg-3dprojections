@@ -94,12 +94,10 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let spery = (2 * clip[4])/((clip[3] - clip[2]) * clip[5]);
     let sperz = 1/clip[5];
 
-    let scaleMatrix = Mat4x4Scale(prpvector4, 3, 3, 3);
+    let scaleMatrix = Mat4x4Scale(prpvector4, sperx, spery, sperz);
     
     //console.log(transMatrix);
 
-    //let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix, mat4x4MPer()]);
-    //let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix]);
     let transform = Matrix.multiply([scaleMatrix, shearMatrix, rotateMatrix, transMatrix]);
     return transform;
 }
@@ -220,6 +218,15 @@ function Mat4x4ShearXY(mat4x4, shx, shy) {
                           [0, 0, 0, 1]];
     //console.log("test: " + shearMat4x4.mult(mat4x4));
     return shearMat4x4;
+}
+
+function mat4x4ViewPort(w, h){
+    let viewPortMat4x4 = new Matrix(4, 4);
+    viewPortMat4x4.values = [[w/2, 0, 0, w/2],
+                            [0, h/2, 0, h/2],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1]];
+    return viewPortMat4x4;
 }
 
 // create a new 3-component vector with values x,y,z
