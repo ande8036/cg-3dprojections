@@ -6,9 +6,53 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     // 4. translate near clipping plane to origin
     // 5. scale such that view volume bounds are ([-1,1], [-1,1], [-1,0])
 
-    // ...
-    // let transform = Matrix.multiply([...]);
-    // return transform;
+    let cw = [(clip[0] + clip[1])/2, (clip[2] + clip[3])/2, (-1 * clip[4])];    
+    
+    // 1. translate PRP to origin
+    let prpvector4 = Vector4(prp.x, prp.y, prp.z, 1);
+
+    let transMatrix =  Mat4x4Translate(prpvector4, prp.x * -1, prp.y * -1, prp.z * -1);
+
+    // 2. rotate VRC such that (u,v,n) align with (x,y,z)
+    let n = prp.subtract(srp);
+    n.normalize();
+
+    let u = vup;
+    u = u.cross(n);
+    u.normalize();
+
+    let v = n.cross(u);
+
+    let rotateMatrix = Mat4x4Rotate(prpvector4, u, v, n);
+
+    // 3. shear such that CW is on the z-axis
+    
+    let shx = (-1 * cw[0])/cw[2];
+    let shy = (-1 * cw[1])/cw[2];
+    let shearMatrix = Mat4x4ShearXY(prpvector4, shx, shy); 
+
+    // 4. translate near clipping plane to origin
+
+    let trans2Matrix =  Mat4x4TranslateNearClip(prpvector4, clip[4]);
+
+    // 5. scale such that view volume bounds are ([-1,1], [-1,1], [-1,0])
+    //clip: [-19, 5, -10, 8, 12, 100]
+    //        l   r   b   t   n   f
+    
+    //let sperx = 2 /(clip[1] + clip[0]);
+    let sperx = 1;
+    //let spery = 2 /(clip[3] + clip[2]);
+    let spery = 1;
+    //let sperz = 1/clip[5];
+    let sperz = 1;
+
+    let scaleMatrix = Mat4x4Scale(prpvector4, sperx, spery, sperz);
+    
+
+    let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, trans2Matrix, scaleMatrix]);
+    //let transform = Matrix.multiply([scaleMatrix, trans2Matrix, shearMatrix, rotateMatrix, transMatrix]);
+    return transform;
+
 }
 
 // create a 4x4 matrix to the perspective projection / view matrix
@@ -19,6 +63,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let dop = [cw[0] - prp.x, cw[1] - prp.y, cw[2] - prp.z];
     console.log("dop: " + dop);
     
+    let z_min = -1 * (clip[4]/clip[5]);
     
     // 1. translate PRP to origin
     let prpvector4 = Vector4(prp.x, prp.y, prp.z, 1);
@@ -54,7 +99,8 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     //console.log(transMatrix);
 
     //let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix, mat4x4MPer()]);
-    let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix]);
+    //let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, scaleMatrix]);
+    let transform = Matrix.multiply([scaleMatrix, shearMatrix, rotateMatrix, transMatrix]);
     return transform;
 }
 
@@ -99,6 +145,15 @@ function Mat4x4Translate(mat4x4, tx, ty, tz) {
     //console.log("test1: " + JSON.stringify(mat4x4));
     return translateMat4x4;
     
+}
+
+function Mat4x4TranslateNearClip(mat4x4, near) {
+    let translateMat4x4 = new Matrix(4, 4);
+    translateMat4x4.values = [[1, 0, 0, 0],
+                              [0, 1, 0, 0],
+                              [0, 0, 1, near],
+                              [0, 0, 0, 1]];
+    return translateMat4x4;
 }
 
 // set values of existing 4x4 matrix to the scale matrix

@@ -25,11 +25,19 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
+            
             type: 'perspective',
             prp: Vector3(44, 20, -16),
             srp: Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]
+            /*
+            type: 'parallel',
+            prp: Vector3(0, 0, 10),
+            srp: Vector3(0, 0, 0),
+            vup: Vector3(0, 1, 0),
+            clip: [-4, 20, -1, 17, 5, 75]
+            */
         },
         models: [
             {
@@ -117,11 +125,18 @@ function drawScene() {
     let prpvector4 = Vector4(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z, 1);
 
     //change prp to perspective
+    let transform;
 
-    let transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+    if(scene.view.type == 'parallel'){
+        transform = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+    }
+    else{
+        transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+    }
     let originalPrp = prpvector4;
     
-    prpvector4 = transform.mult(prpvector4);
+    //prpvector4 = transform.mult(prpvector4);
+    prpvector4 = Matrix.multiply([transform, prpvector4]);
     prpvector4 = Vector4(prpvector4.values[0][0], prpvector4.values[1][0], prpvector4.values[2][0], prpvector4.values[3][0]);
     let newPrp = Vector3(((prpvector4.x - originalPrp.x) / prpvector4.w) + originalPrp.x, ((prpvector4.y - originalPrp.y) / prpvector4.w) + originalPrp.y, ((prpvector4.z - originalPrp.z) / prpvector4.w) + originalPrp.z);
 
