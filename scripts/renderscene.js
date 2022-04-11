@@ -106,7 +106,7 @@ function drawScene() {
     u = u.cross(n);
     //console.log(u.cross(n));
     u.normalize();
-    //console.log("u: " + JSON.stringify(u));
+    console.log("u: " + JSON.stringify(u));
 
     let v = n.cross(u);
     //console.log("v: " + JSON.stringify(v));
@@ -151,7 +151,7 @@ function drawScene() {
         let newVertex = transform.mult(scene.models[0].vertices[i]);
         newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
         scene.models[0].vertices[i] = Vector3(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z);
-        console.log(scene.models[0].vertices[i]);
+        //console.log(scene.models[0].vertices[i]);
     }
 
     let lines = [];
@@ -201,22 +201,22 @@ function drawScene() {
         //console.log(scene.models[0].vertices[i]);
         scene.models[0].vertices[i] =  mat4x4MPer().mult(scene.models[0].vertices[i]);
     }
-    console.log(scene.models[0].vertices[scene.models[0].edges[0][0]]);
-    console.log(scene.models[0].edges[0][0]);
+    //console.log(scene.models[0].vertices[scene.models[0].edges[0][0]]);
+    //console.log(scene.models[0].edges[0][0]);
 
     for(i in scene.models[0].edges){
         for(let j = 0; j < scene.models[0].edges[i].length; j++){
             if(j != scene.models[0].edges[i].length-1){
-                console.log("i =" + i);
-                console.log("j =" + j);
-                console.log("j+1 =" + j+1);
-                console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[0] + (w/2));
-                console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[1] +(h/2));
+                //console.log("i =" + i);
+                //console.log("j =" + j);
+                //console.log("j+1 =" + j+1);
+                //console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[0] + (w/2));
+                //console.log(scene.models[0].vertices[scene.models[0].edges[i][j]].values[1] +(h/2));
                 let test = scene.models[0].vertices[scene.models[0].edges[i][j]].values[0];
-                console.log("Test = " + test);
+                //console.log("Test = " + test);
                 test += w;
-                console.log("Test = " + test);
-                console.log(w);
+                //console.log("Test = " + test);
+                //console.log(w);
                 drawLine(parseInt(scene.models[0].vertices[scene.models[0].edges[i][j]].values[0]) + (w/2), 
                 parseInt(scene.models[0].vertices[scene.models[0].edges[i][j]].values[1]) +(h/2), 
                 parseInt(scene.models[0].vertices[scene.models[0].edges[i][j+1]].values[0])+(w/2), 
@@ -441,6 +441,21 @@ function clipLinePerspective(line, z_min) {
 
 // Called when user presses a key on the keyboard down 
 function onKeyDown(event) {
+
+    let n = scene.view.prp.subtract(scene.view.srp);
+
+    n.normalize();
+    //console.log("n: " + JSON.stringify(n));
+
+    let u = scene.view.vup;
+    //console.log(u);a
+
+    u = u.cross(n);
+    //console.log(u.cross(n));
+    u.normalize();
+
+    let prp = scene.view.prp;
+
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
@@ -450,15 +465,49 @@ function onKeyDown(event) {
             break;
         case 65: // A key
             console.log("A");
+
+            prp.scale(10);
+
+            u = u.add(prp);
+            scene.view.prp = u;
+
+            //console.log(scene.view.prp);
+
+            drawScene();
+            
             break;
         case 68: // D key
             console.log("D");
+
+            prp.scale(10);
+
+            prp = prp.subtract(u);
+            scene.view.prp = prp;
+
+            drawScene();
+            
             break;
         case 83: // S key
             console.log("S");
+
+            prp.scale(10);
+
+            prp = prp.subtract(n);
+            scene.view.prp = prp;
+
+            drawScene();
             break;
         case 87: // W key
             console.log("W");
+
+            prp.scale(10);
+
+            n = n.add(prp);
+            scene.view.prp = n;
+
+            //console.log(scene.view.prp);
+
+            drawScene();
             break;
     }
 }
