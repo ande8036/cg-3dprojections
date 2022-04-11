@@ -20,17 +20,10 @@
             <input id="scene_file" type="file" onchange="loadNewScene()" />
                 <br>
                 <h2>Animate</h2>
-                <input type="radio" class="animate" name="animate_option" id="none" checked="checked">
-                <label id="animate">None</label>
-                <br>
-                <input type="radio" class="animate" name="animate_option" id="x">
-                <label id="animate">X</label>
-                <br>
-                <input type="radio" class="animate" name="animate_option" id="y">
-                <label id="animate">Y</label>
-                <br>
-                <input type="radio" class="animate" name="animate_option" id="z">
-                <label id="animate">Z</label>
+                <button type="button" id="none" onclick="animate(start_time, 'x')">No Animation</button>
+                <button type="button" id="x">Animate X</button>
+                <button type="button" id="y">Animate Y</button>
+                <button type="button" id="z">Animate Z</button>
         </div>
     </div>
 </body>

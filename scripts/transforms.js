@@ -61,7 +61,6 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     //        l   r   b   t   n   f
     let cw = [(clip[0] + clip[1])/2, (clip[2] + clip[3])/2, (-1 * clip[4])];
     let dop = [cw[0] - prp.x, cw[1] - prp.y, cw[2] - prp.z];
-    console.log("dop: " + dop);
     
     let z_min = -1 * (clip[4]/clip[5]);
     
@@ -166,7 +165,7 @@ function Mat4x4Scale(mat4x4, sx, sy, sz) {
 }
 
 // set values of existing 4x4 matrix to the rotate about x-axis matrix
-function Mat4x4RotateX(mat4x4, theta) {
+function Mat4x4RotateX(theta) {
     let rotatexMat4x4 = new Matrix(4, 4);
     rotatexMat4x4.values = [[1, 0, 0, 0],
                           [0, Math.cos(theta), (-1 * Math.sin(theta)), 0],

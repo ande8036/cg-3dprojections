@@ -4,6 +4,7 @@ let scene;
 let start_time;
 let w = 800;
 let h = 600;
+let lines = [];
 
 const LEFT =   32; // binary 100000
 const RIGHT =  16; // binary 010000
@@ -72,91 +73,54 @@ function init() {
     document.addEventListener('keydown', onKeyDown, false);
 
     start_time = performance.now(); // current timestamp in milliseconds
-    window.requestAnimationFrame(animate);
-    let direction = 'none';
-    if(document.getElementById('none').checked || direction == 'none'){
-        console.log("none checked");
-        direction = 'none';
-        animate(start_time, direction);
-    }
-    
-    const radios = document.querySelectorAll('input')
-    for (const radio of radios) {
-        radio.onclick = (e) => {
-            if(document.getElementById('none').checked){
-                console.log("none checked");
-                direction = 'none';
-                animate(start_time, direction);
-            }
-            else if(document.getElementById('x').checked){
-                console.log("x checked");
-                direction = 'x';
-                animate(start_time, direction);
-            }
-            else if(document.getElementById('y').checked){
-                console.log("y checked");
-                direction = 'y';
-                animate(start_time, direction);
-            }
-            else if(document.getElementById('z').checked){
-                console.log("z checked");
-                direction = 'z'
-                animate(start_time, direction);
-            }
-        }
-    } 
+    window.requestAnimationFrame(animate, "none");
+
+    document.getElementById("none").onclick = function() {animate(performance.now(), "none")};
+    document.getElementById("x").onclick = function() {animate(performance.now(), "x") };
+    document.getElementById("y").onclick = function() {animate(performance.now(), "y") };   
+    document.getElementById("z").onclick = function() {animate(performance.now(), "z") };
 }
 
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp, direction) {
     // step 1: calculate time (time since start)
     let time = timestamp - start_time;
-    console.log("direction " + direction)
+    console.log("direction: ", direction);
 
     // step 2: transform models based on time
     // TODO: implement this!
-    let transform;
-    let originalVertex;
-    if(direction == 'none'){
-        console.log("set to none");
+    if(this.direction == "none"){
         drawScene();
     }
+    
     else {
-        if(direction == 'x'){
-            transform = Mat4x4RotateX(null, time%36);
-            for(i in scene.models[0].vertices) {
-                originalVertex = scene.models[0].vertices[i];
-                let newVertex = transform.mult(scene.models[0].vertices[i]);
-                newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
-                scene.models[0].vertices[i] = Vector4(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z, 1);
+        if(direction == "x"){
+            for(i in lines) {
+                let p02d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt0]); //transform each point
+                let p12d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt1]); //in homogeneous points
+                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w);
             }
-            drawScene();
         }
-        if(direction == 'y'){
-            transform = Mat4x4RotateY(null, time%36);
-            for(i in scene.models[0].vertices) {
-                originalVertex = scene.models[0].vertices[i];
-                let newVertex = transform.mult(scene.models[0].vertices[i]);
-                newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
-                scene.models[0].vertices[i] = Vector4(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z, 1);
+        if(direction == "y"){
+            for(i in lines) {
+                let p02d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt0]); //transform each point
+                let p12d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt1]); //in homogeneous points
+                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w);
             }
-            drawScene();
         }
-        if(direction == 'z'){
-            transform = Mat4x4RotateZ(null, time%36);
-            for(i in scene.models[0].vertices) {
-                originalVertex = scene.models[0].vertices[i];
-                let newVertex = transform.mult(scene.models[0].vertices[i]);
-                newVertex = Vector4(newVertex.values[0][0], newVertex.values[1][0], newVertex.values[2][0], newVertex.values[3][0]);
-                scene.models[0].vertices[i] = Vector4(((newVertex.x - originalVertex.x) / newVertex.w) + originalVertex.x, ((newVertex.y - originalVertex.y) / newVertex.w) + originalVertex.y, ((newVertex.z - originalVertex.z) / newVertex.w) + originalVertex.z, 1);
+        if(direction == "z"){
+            for(i in lines) {
+                let p02d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt0]); //transform each point
+                let p12d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt1]); //in homogeneous points
+                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w);
             }
-            drawScene();
         }
     }
 
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    //window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(animate, direction);
+
 }
 
 // Main drawing code - use information contained in variable `scene`
@@ -190,7 +154,7 @@ function drawScene() {
         transformedVerts.push(newVertex);
     }
 
-    let lines = [];
+    lines = [];
 
     for(let i = 0; i < scene.models[0].edges.length; i++){ //store them in a  new array
         for(let j = 0; j < scene.models[0].edges[i].length - 1; j++){
@@ -204,7 +168,7 @@ function drawScene() {
         let z_min = -1 * (scene.view.clip[4]/scene.view.clip[5]);
         let line = {pt0: lines[i][0], pt1: lines[i][1]};
         //lines[i] = clipLinePerspective(line, z_min); //put back once clipping is working
-        lines[i]=line;
+        lines[i]=line; //comment out when clip works
         let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt0]); //transform each point
         let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt1]); //in homogeneous points
         drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
@@ -371,29 +335,9 @@ function clipLinePerspective(line, z_min) {
         line.pt0.y = (1-t)*line.pt0.y + t*line.pt1.y;
         line.pt0.z = (1-t)*line.pt0.z + t*line.pt1.z;
     }
-
-    
-    /*if(outCheck != 0){
-        if(out0 && LEFT == LEFT) {
-            t = (0 - line.pt0.x)/(line.pt1.x - line.pt0.x);
-            y = (1-t)*line.pt0.y + t*line.pt1.y;
-        }
-        if((out0 && LEFT == LEFT) && ) {
-            t = (0 - line.pt0.x)/(line.pt1.x - line.pt0.x);
-            y = (1-t)*line.pt0.y + t*line.pt1.y;
-        }
-        
-    }*/
     
     // TODO: implement clipping here!
-    // t = (x -x0)/(x1-x0)
-    // L < x=0
 
-    //T > height
-    //R > width
-    //B < 0
-    //N < zmin
-    //F > zmax
     return line;
 }
 
