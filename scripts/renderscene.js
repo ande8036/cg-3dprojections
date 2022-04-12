@@ -36,10 +36,10 @@ function init() {
             clip: [-19, 5, -10, 8, 12, 100]
             /*
             type: 'parallel',
-            prp: Vector3(0, 0, 10),
-            srp: Vector3(0, 0, 0),
+            prp: Vector3(10, 10, 5),
+            srp: Vector3(10, 10, -30),
             vup: Vector3(0, 1, 0),
-            clip: [-4, 20, -1, 17, 5, 75]
+            clip: [-11, 11, -11, 11, 5, 100]
             */
         },
         models: [
@@ -205,12 +205,23 @@ function drawScene() {
     for(i in lines){
         let z_min = -1 * (scene.view.clip[4]/scene.view.clip[5]);
         let line = {pt0: lines[i][0], pt1: lines[i][1]};
-        lines[i] = clipLinePerspective(line, z_min); //put back once clipping is working
-        lines[i]=line; //comment out when clip works
-        if(lines[i] != null) {
-            let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt0]); //transform each point
-            let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt1]); //in homogeneous points
-            drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+        if(scene.view.type == 'parallel'){
+            //lines[i] = clipLineParallel(line);
+            lines[i]=line; //comment out when clip works
+            if(lines[i] != null) {
+                let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPar(), lines[i].pt0]); //transform each point
+                let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPar(), lines[i].pt1]); //in homogeneous points
+                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+            }
+        }
+        else{
+            lines[i] = clipLinePerspective(line, z_min); //put back once clipping is working
+            lines[i]=line; //comment out when clip works
+            if(lines[i] != null) {
+                let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt0]); //transform each point
+                let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt1]); //in homogeneous points
+                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+            }
         }
         
     }
@@ -274,14 +285,79 @@ function clipLineParallel(line) {
     let out1 = outcodeParallel(p1);
     
     // TODO: implement clipping here!
+    let outCheck = out0|out1;
+    if(outCheck == 0){
+        return line;
+    }
+
+    //case 2 both outside
+    else if((out0 & LEFT) && (out1 & LEFT)){
+        return result;
+    }
+    else if((out0 & RIGHT) && (out1 & RIGHT)){
+        return result;
+    }
+    else if((out0 & BOTTOM) && (out1 & BOTTOM)){
+        return result;
+    }
+    else if((out0 & TOP) && (out1 & TOP)){
+        return result;
+    }
+    else if((out0 & NEAR) && (out1 & NEAR)){
+        return result;
+    }
+    else if((out0 & FAR) && (out1 & FAR)){
+        return result;
+    }
+
+    //case 3 0 inside 1 out
+    else if(out1 != 0) { //if out1 is out // t = (x -x0)/(x1-x0)
+        if((out0 & LEFT != LEFT) && ((out1 & LEFT)) == LEFT){ //out0 is not outside of left and out1 is
+            t = (0 - line.pt0.x)/(line.pt1.x -line.pt0.x);
+        } 
     
-    return result;
+        if((out0 & RIGHT != RIGHT) && ((out1 & RIGHT)) == RIGHT){ 
+            t = (canvas.width - line.pt0.x )/(line.pt1.x -line.pt0.x);
+        } 
+    
+        if((out0 & BOTTOM != BOTTOM) && ((out1 & BOTTOM)) == BOTTOM){ 
+            t = (0 - line.pt0.y)/(line.pt1.y -line.pt0.y);
+        } 
+    
+        if((out0 & TOP != TOP) && ((out1 & TOP)) == TOP){
+            t = (canvas.height - line.pt0.y)/(line.pt1.y -line.pt0.y);
+        } 
+        line.pt1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        line.pt1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+    }
+
+    //case 4 0 out 1 in
+    else if(out0 != 0){ //if out0 is outside
+        if((out1 & LEFT != LEFT) && ((out0 & LEFT) == LEFT)){ 
+            t = (0 - line.pt0.x)/(line.pt1.x -line.pt0.x);
+        } 
+    
+        if((out1 & RIGHT != RIGHT) && ((out0 & RIGHT) == RIGHT)){ 
+            t = (canvas.width - line.pt0.x )/(line.pt1.x -line.pt0.x);
+        } 
+    
+        if((out1 & BOTTOM != BOTTOM) && ((out0 & BOTTOM) == BOTTOM)){
+            t = (0 - line.pt0.y)/(line.pt1.y -line.pt0.y);
+        } 
+    
+        if((out1 & TOP != TOP) && ((out0 & TOP) == TOP)){ 
+            t = (canvas.height - line.pt0.y)/(line.pt1.y -line.pt0.y);
+        } 
+        line.pt0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        line.pt0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+    }
+    return line;
 }
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) {
     let result = null;
-    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
+    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); //use p0 to change line
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
@@ -340,9 +416,9 @@ function clipLinePerspective(line, z_min) {
         if((out0 & FAR != FAR) && ((out1 & FAR) == FAR)){ 
             t = (-line.pt0.z - 1)/((line.pt0.z/ line.pt1.z));
         } 
-        line.pt1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        line.pt1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-        line.pt1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        p1 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1 = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1 = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
 
     //case 4 0 out 1 in
@@ -370,10 +446,11 @@ function clipLinePerspective(line, z_min) {
         if((out1 & FAR != FAR) && ((out0 & FAR) == FAR)){ 
             t = (-line.pt0.z - 1)/((line.pt0.z/ line.pt1.z));
         } 
-        line.pt0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        line.pt0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-        line.pt0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        p0 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p0 = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p0 = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
+    line = [[p0],[p1]];
     return line;
 }
 

@@ -36,21 +36,15 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     let trans2Matrix =  Mat4x4TranslateNearClip(prpvector4, clip[4]);
 
     // 5. scale such that view volume bounds are ([-1,1], [-1,1], [-1,0])
-    //clip: [-19, 5, -10, 8, 12, 100]
-    //        l   r   b   t   n   f
+    //clip: [-11, 11, -11, 11, 5, 100]
+    //        l   r    b   t   n   f
     
-    //let sperx = 2 /(clip[1] + clip[0]);
-    let sperx = 1;
-    //let spery = 2 /(clip[3] + clip[2]);
-    let spery = 1;
-    //let sperz = 1/clip[5];
-    let sperz = 1;
-
+    let sperx = 2 /(clip[1] + clip[0]);
+    let spery = 2 /(clip[3] + clip[2]);
+    let sperz = 1/clip[5];
     let scaleMatrix = Mat4x4Scale(prpvector4, sperx, spery, sperz);
     
-
-    let transform = Matrix.multiply([transMatrix, rotateMatrix, shearMatrix, trans2Matrix, scaleMatrix]);
-    //let transform = Matrix.multiply([scaleMatrix, trans2Matrix, shearMatrix, rotateMatrix, transMatrix]);
+    let transform = Matrix.multiply([scaleMatrix, trans2Matrix, shearMatrix, rotateMatrix, transMatrix]);
     return transform;
 
 }
@@ -66,7 +60,6 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     
     // 1. translate PRP to origin
     let prpvector4 = Vector4(prp.x, prp.y, prp.z, 1);
-    //console.log("test: " + JSON.stringify(prpvector4));
     let transMatrix =  Mat4x4Translate(prpvector4, prp.x * -1, prp.y * -1, prp.z * -1);
 
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
@@ -76,15 +69,13 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let u = vup;
     u = u.cross(n);
     u.normalize();
-    //console.log(u);
-
     let v = n.cross(u);
 
     let rotateMatrix = Mat4x4Rotate(prpvector4, u, v, n);
 
     // 3. shear such that CW is on the z-axis
     
-    let shx = (-1 * cw[0])/cw[2];//changing the dops to cw fixes this, but that doesn't seem to line up with the math
+    let shx = (-1 * cw[0])/cw[2];
     let shy = (-1 * cw[1])/cw[2];
     let shearMatrix = Mat4x4ShearXY(prpvector4, shx, shy); 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
@@ -104,21 +95,22 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 // create a 4x4 matrix to project a parallel image on the z=0 plane
 function mat4x4MPar() {
     let mpar = new Matrix(4, 4);
-    // mpar.values = ...;
+    mpar.values =   [[1, 0, 0, 0],
+                     [0, 1, 0, 0],
+                     [0, 0, 0, 0],
+                     [0, 0, 0, 1]];
     return mpar;
 }
 
 // create a 4x4 matrix to project a perspective image on the z=-1 plane
 function mat4x4MPer() {
     let mper = new Matrix(4, 4);
-    mper.values = [[1, 0, 0, 0],
+    mper.values =   [[1, 0, 0, 0],
                      [0, 1, 0, 0],
                      [0, 0, 1, 0],
                      [0, 0, -1, 0]];
     return mper;
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 // 4x4 Transform Matrices                                                         //
