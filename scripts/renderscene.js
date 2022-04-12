@@ -232,10 +232,10 @@ function outcodeParallel(vertex) {
     else if (vertex.y > (1.0 + FLOAT_EPSILON)) {
         outcode += TOP;
     }
-    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
+    if (vertex.z < (-1.0 - FLOAT_EPSILON)) {
         outcode += FAR;
     }
-    else if (vertex.x > (0.0 + FLOAT_EPSILON)) {
+    else if (vertex.z > (0.0 + FLOAT_EPSILON)) {
         outcode += NEAR;
     }
     return outcode;
@@ -256,10 +256,10 @@ function outcodePerspective(vertex, z_min) {
     else if (vertex.y > (-vertex.z + FLOAT_EPSILON)) {
         outcode += TOP;
     }
-    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
+    if (vertex.z < (-1.0 - FLOAT_EPSILON)) {
         outcode += FAR;
     }
-    else if (vertex.x > (z_min + FLOAT_EPSILON)) {
+    else if (vertex.z > (z_min + FLOAT_EPSILON)) {
         outcode += NEAR;
     }
     return outcode;
@@ -286,9 +286,8 @@ function clipLinePerspective(line, z_min) {
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
     let t = 0;
-    let x = 0;
-    let y = 0;
-    let z = 0;
+
+    // TODO: implement clipping here!
 
     let outCheck = out0|out1;
     //case 1, both inside
@@ -297,91 +296,84 @@ function clipLinePerspective(line, z_min) {
     }
 
     //case 2 both outside
-    if((out0 & LEFT) && (out1 & LEFT)){
+    else if((out0 & LEFT) && (out1 & LEFT)){
         return result;
     }
-    if((out0 & RIGHT) && (out1 & RIGHT)){
-        
+    else if((out0 & RIGHT) && (out1 & RIGHT)){
         return result;
     }
-    if((out0 & BOTTOM) && (out1 & BOTTOM)){
-        
+    else if((out0 & BOTTOM) && (out1 & BOTTOM)){
         return result;
     }
-    if((out0 & TOP) && (out1 & TOP)){
-        
+    else if((out0 & TOP) && (out1 & TOP)){
         return result;
     }
-    if((out0 & NEAR) && (out1 & NEAR)){
+    else if((out0 & NEAR) && (out1 & NEAR)){
         return result;
     }
-    if((out0 & FAR) && (out1 & FAR)){
+    else if((out0 & FAR) && (out1 & FAR)){
         return result;
     }
 
     //case 3 0 inside 1 out
-    if(out1 != 0) { //if out1 is out
-        if((out0 & LEFT != LEFT) && (out1 & LEFT) == LEFT){ //out0 is not outside of left and out1 is
-            t = (-line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
+    else if(out1 != 0) { //if out1 is out
+        if((out0 & LEFT != LEFT) && ((out1 & LEFT)) == LEFT){ //out0 is not outside of left and out1 is
+            t = (-line.pt0.x + line.pt0.z)/((line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out0 & RIGHT != RIGHT) && (out1 & RIGHT) == RIGHT){ 
-            t = (line.pt0.x + line.pt0.z)/(-(line.pt1.x/line.pt0.x) - (line.pt1.z/ line.pt0.z));
+        if((out0 & RIGHT != RIGHT) && ((out1 & RIGHT)) == RIGHT){ 
+            t = (line.pt0.x + line.pt0.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out0 & BOTTOM != BOTTOM) && (out1 & BOTTOM) == BOTTOM){ 
-            t = (line.pt0.y + line.pt0.z)/((line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        if((out0 & BOTTOM != BOTTOM) && ((out1 & BOTTOM)) == BOTTOM){ 
+            t = (-line.pt0.y + line.pt0.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out0 & TOP != TOP) && (out1 & TOP) == TOP){
-            t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        if((out0 & TOP != TOP) && ((out1 & TOP)) == TOP){
+            t = (line.pt0.y + line.pt0.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out0 & NEAR != NEAR) && (out1 & NEAR) == NEAR){ 
-            t = (line.pt0.z - z_min)/(-(line.pt1.z/ line.pt0.z));
+        if((out0 & NEAR != NEAR) && ((out1 & NEAR)) == NEAR){ 
+            t = (line.pt0.z - z_min)/(-(line.pt0.z/ line.pt1.z));
         } 
     
-        if((out0 & FAR != FAR) && (out1 & FAR) == FAR){ 
-            t = (line.pt0.y + line.pt0.z)/(-(line.pt1.y/line.pt0.y) - (line.pt1.z/ line.pt0.z));
+        if((out0 & FAR != FAR) && ((out1 & FAR) == FAR)){ 
+            t = (-line.pt0.z - 1)/((line.pt0.z/ line.pt1.z));
         } 
-        line.pt1.x = (1-t)*line.pt0.x + t*line.pt1.x;
-        line.pt1.y = (1-t)*line.pt0.y + t*line.pt1.y;
-        line.pt1.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        line.pt1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        line.pt1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
 
     //case 4 0 out 1 in
     else if(out0 != 0){ //if out0 is outside
-        if((out1 & LEFT != LEFT) && (out0 & LEFT) == LEFT){ 
-            t = (-line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+        if((out1 & LEFT != LEFT) && ((out0 & LEFT) == LEFT)){ 
+            t = (-line.pt0.x + line.pt0.z)/((line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out1 & RIGHT != RIGHT) && (out0 & RIGHT) == RIGHT){ 
-            t = (line.pt1.x + line.pt1.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
-    
+        if((out1 & RIGHT != RIGHT) && ((out0 & RIGHT) == RIGHT)){ 
+            t = (line.pt0.x + line.pt0.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out1 & BOTTOM != BOTTOM) && (out0 & BOTTOM) == BOTTOM){
-            t = (line.pt1.y + line.pt1.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        if((out1 & BOTTOM != BOTTOM) && ((out0 & BOTTOM) == BOTTOM)){
+            t = (-line.pt0.y + line.pt0.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out1 & TOP != TOP) && (out0 & TOP) == TOP){ 
-            t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        if((out1 & TOP != TOP) && ((out0 & TOP) == TOP)){ 
+            t = (line.pt0.y + line.pt0.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
         } 
     
-        if((out1 & NEAR != NEAR) && (out0 & NEAR) == NEAR){ 
-            t = (line.pt1.z - z_min)/(-(line.pt0.z/ line.pt1.z));
+        if((out1 & NEAR != NEAR) && ((out0 & NEAR) == NEAR)){ 
+            t = (line.pt0.z - z_min)/(-(line.pt0.z/ line.pt1.z));
         } 
     
-        if((out1 & FAR != FAR) && (out0 & FAR) == FAR){ 
-            t = (line.pt1.y + line.pt1.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        if((out1 & FAR != FAR) && ((out0 & FAR) == FAR)){ 
+            t = (-line.pt0.z - 1)/((line.pt0.z/ line.pt1.z));
         } 
-        line.pt0.x = (1-t)*line.pt0.x + t*line.pt1.x;
-        line.pt0.y = (1-t)*line.pt0.y + t*line.pt1.y;
-        line.pt0.z = (1-t)*line.pt0.z + t*line.pt1.z;
+        line.pt0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        line.pt0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        line.pt0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
-    
-    // TODO: implement clipping here!
-
     return line;
 }
 
