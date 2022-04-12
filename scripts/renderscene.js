@@ -5,6 +5,8 @@ let start_time;
 let w = 800;
 let h = 600;
 let lines = [];
+let direction1 = "none";
+let originalVertices;
 
 const LEFT =   32; // binary 100000
 const RIGHT =  16; // binary 010000
@@ -68,64 +70,98 @@ function init() {
             }
         ]
     };
+    originalVertices = scene.models[0].vertices;
 
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
-
+    
     start_time = performance.now(); // current timestamp in milliseconds
-    window.requestAnimationFrame(animate, "none");
+    window.requestAnimationFrame(animate);
 
-    document.getElementById("none").onclick = function() {animate(performance.now(), "none")};
+    document.getElementById("none").onclick = function() {
+        scene.models[0].vertices = originalVertices;
+        animate(performance.now(), "none");
+    };
     document.getElementById("x").onclick = function() {animate(performance.now(), "x") };
     document.getElementById("y").onclick = function() {animate(performance.now(), "y") };   
     document.getElementById("z").onclick = function() {animate(performance.now(), "z") };
+    
 }
 
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp, direction) {
     // step 1: calculate time (time since start)
-    let time = timestamp - start_time;
-    console.log("direction: ", direction);
+    timestamp = performance.now();
+    let time = start_time - timestamp;
+    //console.log(time);
+    //console.log("direction: ", direction1);
+    if(direction != undefined) {
+        direction1 = direction;
+    }
+
+
 
     // step 2: transform models based on time
     // TODO: implement this!
-    if(this.direction == "none"){
+    if(direction1 == "none"){
         drawScene();
     }
     
+    
     else {
-        if(direction == "x"){
-            for(i in lines) {
-                let p02d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt0]); //transform each point
-                let p12d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt1]); //in homogeneous points
-                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w);
+        if(direction1 == "x"){
+            for(i in scene.models[0].vertices) {
+                //loop through every vertex
+                //transform each point
+                let originalVertex = scene.models[0].vertices[i];
+                let newVertex = Matrix.multiply([Mat4x4RotateX((time / 1000000) % 3), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                scene.models[0].vertices[i] = newVertex;
+                //console.log(originalVertex);
+                //console.log(newVertex);
             }
         }
-        if(direction == "y"){
-            for(i in lines) {
-                let p02d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt0]); //transform each point
-                let p12d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt1]); //in homogeneous points
-                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w);
+        if(direction1 == "y"){
+            for(i in scene.models[0].vertices) {
+                //loop through every vertex
+                //transform each point
+                let originalVertex = scene.models[0].vertices[i];
+                let newVertex = Matrix.multiply([Mat4x4RotateY((time / 1000000) % 3), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                scene.models[0].vertices[i] = newVertex;
+                //console.log(originalVertex);
+                //console.log(newVertex);
             }
         }
-        if(direction == "z"){
-            for(i in lines) {
-                let p02d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt0]); //transform each point
-                let p12d = Matrix.multiply([Mat4x4RotateX(time%36), lines[i].pt1]); //in homogeneous points
-                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w);
+        if(direction1 == "z"){
+            for(i in scene.models[0].vertices) {
+                //loop through every vertex
+                //transform each point
+                let originalVertex = scene.models[0].vertices[i];
+                let newVertex = Matrix.multiply([Mat4x4RotateZ((time / 1000000) % 3), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                scene.models[0].vertices[i] = newVertex;
+                //console.log(originalVertex);
+                //console.log(newVertex);
             }
         }
+        drawScene();
     }
-
+    
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    window.requestAnimationFrame(animate, direction);
 
+    
+
+    setTimeout(() => {
+        window.requestAnimationFrame(animate, direction);
+    }, 100);
+    
+    
 }
 
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
-    console.log(scene);
+    //console.log(scene);
+    //ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, view.width, view.height);
     
     // TODO: implement drawing here!
     // For each model, for each edge
@@ -152,6 +188,8 @@ function drawScene() {
         let originalVertex = scene.models[0].vertices[i];
         let newVertex = Matrix.multiply([transform, originalVertex]); //create transformed verticies by multiplying by all initial matricies
         transformedVerts.push(newVertex);
+        //console.log(originalVertex);
+        //console.log(newVertex);
     }
 
     lines = [];
@@ -167,11 +205,14 @@ function drawScene() {
     for(i in lines){
         let z_min = -1 * (scene.view.clip[4]/scene.view.clip[5]);
         let line = {pt0: lines[i][0], pt1: lines[i][1]};
-        //lines[i] = clipLinePerspective(line, z_min); //put back once clipping is working
+        lines[i] = clipLinePerspective(line, z_min); //put back once clipping is working
         lines[i]=line; //comment out when clip works
-        let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt0]); //transform each point
-        let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt1]); //in homogeneous points
-        drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+        if(lines[i] != null) {
+            let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt0]); //transform each point
+            let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt1]); //in homogeneous points
+            drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+        }
+        
     }
     //console.log(lines);
 }
@@ -260,12 +301,15 @@ function clipLinePerspective(line, z_min) {
         return result;
     }
     if((out0 & RIGHT) && (out1 & RIGHT)){
+        
         return result;
     }
     if((out0 & BOTTOM) && (out1 & BOTTOM)){
+        
         return result;
     }
     if((out0 & TOP) && (out1 & TOP)){
+        
         return result;
     }
     if((out0 & NEAR) && (out1 & NEAR)){
@@ -368,7 +412,7 @@ function onKeyDown(event) {
         case 65: // A key
             console.log("A");
 
-            prp.scale(10);
+            //prp.scale(10);
 
             u = u.add(prp);
             scene.view.prp = u;
@@ -381,7 +425,7 @@ function onKeyDown(event) {
         case 68: // D key
             console.log("D");
 
-            prp.scale(10);
+            //prp.scale(10);
 
             prp = prp.subtract(u);
             scene.view.prp = prp;
@@ -392,20 +436,22 @@ function onKeyDown(event) {
         case 83: // S key
             console.log("S");
 
-            prp.scale(10);
+            //prp.scale(10);
 
-            prp = prp.subtract(n);
-            scene.view.prp = prp;
+            n = n.add(prp);
+            scene.view.prp = n;
 
             drawScene();
             break;
         case 87: // W key
             console.log("W");
 
-            prp.scale(10);
+            //prp.scale(10);
 
-            n = n.add(prp);
-            scene.view.prp = n;
+            prp = prp.subtract(n);
+            scene.view.prp = prp;
+
+            
 
             //console.log(scene.view.prp);
 

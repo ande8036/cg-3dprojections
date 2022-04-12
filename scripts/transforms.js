@@ -176,7 +176,7 @@ function Mat4x4RotateX(theta) {
 }
 
 // set values of existing 4x4 matrix to the rotate about y-axis matrix
-function Mat4x4RotateY(mat4x4, theta) {
+function Mat4x4RotateY(theta) {
     let rotateyMat4x4 = new Matrix(4, 4);
     rotateyMat4x4.values = [[Math.cos(theta), 0, Math.sin(theta), 0],
                           [0, 1, 0, 0],
@@ -187,7 +187,7 @@ function Mat4x4RotateY(mat4x4, theta) {
 }
 
 // set values of existing 4x4 matrix to the rotate about z-axis matrix
-function Mat4x4RotateZ(mat4x4, theta) {
+function Mat4x4RotateZ(theta) {
     let rotatezMat4x4 = new Matrix(4, 4);
     rotatezMat4x4.values = [[Math.cos(theta), (-1 * Math.sin(theta)), 0, 0],
                           [Math.sin(theta), Math.cos(theta), 0, 0],
