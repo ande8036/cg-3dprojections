@@ -327,8 +327,8 @@ function clipLineParallel(line) {
         if((out0 & TOP != TOP) && ((out1 & TOP)) == TOP){
             t = (canvas.height - line.pt0.y)/(line.pt1.y -line.pt0.y);
         } 
-        line.pt1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        line.pt1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1 = ((1-t)*line.pt0.y) + (t*line.pt1.y);
     }
 
     //case 4 0 out 1 in
@@ -348,9 +348,10 @@ function clipLineParallel(line) {
         if((out1 & TOP != TOP) && ((out0 & TOP) == TOP)){ 
             t = (canvas.height - line.pt0.y)/(line.pt1.y -line.pt0.y);
         } 
-        line.pt0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        line.pt0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p0 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p0 = ((1-t)*line.pt0.y) + (t*line.pt1.y);
     }
+    line = [[p0],[p1]];
     return line;
 }
 
