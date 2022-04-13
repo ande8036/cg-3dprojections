@@ -204,6 +204,7 @@ function drawScene() {
             //console.log(scene.models[k].edges.length);
             
         } else if(scene.models[k].type == "cylinder") {
+            //console.log("test");
             let center = scene.models[k].center;
             let radius = scene.models[k].radius;
             let height = scene.models[k].height;
@@ -405,64 +406,69 @@ function drawScene() {
             }*/
 
         }
-    }
-    let transform;
+        //console.log(k);
+    
+    
 
-    if(scene.view.type == 'parallel'){
-        transform = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
-    }
-    else{
-        transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
-    }
+        let transform;
 
-    let transformedVerts = [];
-
-    for(i in scene.models[0].vertices) {
-        //loop through every vertex
-        //transform each point
-        let originalVertex = scene.models[0].vertices[i];
-        let newVertex = Matrix.multiply([transform, originalVertex]); //create transformed verticies by multiplying by all initial matricies
-        transformedVerts.push(newVertex);
-        //console.log(originalVertex);
-        //console.log(newVertex);
-    }
-
-    lines = [];
-
-    for(let i = 0; i < scene.models[0].edges.length; i++){ //store them in a  new array
-        for(let j = 0; j < scene.models[0].edges[i].length - 1; j++){
-                lines.push([
-                    transformedVerts[scene.models[0].edges[i][j]],
-                    transformedVerts[scene.models[0].edges[i][j+1]]
-                ]);
-        }
-    }
-    for(i in lines){
-        let z_min = -1 * (scene.view.clip[4]/scene.view.clip[5]);
-        let line = {pt0: lines[i][0], pt1: lines[i][1]};
         if(scene.view.type == 'parallel'){
-            //lines[i] = clipLineParallel(line);
-            lines[i]=line; //comment out when clip works
-            if(lines[i] != null) {
-                let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPar(), lines[i].pt0]); //transform each point
-                let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPar(), lines[i].pt1]); //in homogeneous points
-                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
-            }
+            transform = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
         }
         else{
-            //console.log("preclip :", line);
-            line = clipLinePerspective(line, z_min); //put back once clipping is working
-            //console.log("postclip :", line);
-            //lines[i]=line; //comment out when clip works
-            if(line != null) {
-                let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), line.pt0]); //transform each point
-                let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), line.pt1]); //in homogeneous points
-                drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+            transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+        }
+
+        let transformedVerts = [];
+
+        for(i in scene.models[k].vertices) {
+            //loop through every vertex
+            //transform each point
+            let originalVertex = scene.models[k].vertices[i];
+            let newVertex = Matrix.multiply([transform, originalVertex]); //create transformed verticies by multiplying by all initial matricies
+            transformedVerts.push(newVertex);
+            //console.log(originalVertex);
+            //console.log(newVertex);
+            //console.log(i);
+        }
+
+        lines = [];
+
+        for(let i = 0; i < scene.models[k].edges.length; i++){ //store them in a  new array
+            for(let j = 0; j < scene.models[k].edges[i].length - 1; j++){
+                    lines.push([
+                        transformedVerts[scene.models[k].edges[i][j]],
+                        transformedVerts[scene.models[k].edges[i][j+1]]
+                    ]);
             }
         }
-        
+        for(i in lines){
+            let z_min = -1 * (scene.view.clip[4]/scene.view.clip[5]);
+            let line = {pt0: lines[i][0], pt1: lines[i][1]};
+            if(scene.view.type == 'parallel'){
+                //lines[i] = clipLineParallel(line);
+                lines[i]=line; //comment out when clip works
+                if(lines[i] != null) {
+                    let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPar(), lines[i].pt0]); //transform each point
+                    let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPar(), lines[i].pt1]); //in homogeneous points
+                    drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+                }
+            }
+            else{
+                //console.log("preclip :", line);
+                line = clipLinePerspective(line, z_min); //put back once clipping is working
+                //console.log("postclip :", line);
+                //lines[i]=line; //comment out when clip works
+                if(line != null) {
+                    let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), line.pt0]); //transform each point
+                    let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), line.pt1]); //in homogeneous points
+                    drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
+                }
+            }
+            
+        }
+        //console.log(lines);
     }
-    //console.log(lines);
 }
 
 // Get outcode for vertex (parallel view volume)
