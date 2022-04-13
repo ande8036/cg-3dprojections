@@ -100,7 +100,7 @@ function animate(timestamp, direction) {
     }
 
 
-    console.log(time / 1000);
+    //console.log(time / 1000);
     // step 2: transform models based on time
     // TODO: implement this!
     if(direction1 == "none"){
