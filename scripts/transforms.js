@@ -200,6 +200,18 @@ function Mat4x4Rotate(mat4x4, u, v, n) {
     return rotateMat4x4;
 }
 
+// set values of existing 4x4 matrix to rotate about arbitrary axis
+function Mat4x4RotateV(axis, theta) {
+    let rotateMat4x4 = new Matrix(4, 4);
+    let test = [[Math.cos(theta) + ((axis.x * axis.x) * (1 - Math.cos(theta))), ((axis.x * axis.y * (1 - Math.cos(theta))) - (axis.z * Math.sin(theta))), ((axis.x * axis.z * (1 - Math.cos(theta))) + (axis.y * Math.sin(theta))), 0],
+    [((axis.y * axis.x * (1 - Math.cos(theta))) + (axis.z * Math.sin(theta))), Math.cos(theta) + ((axis.y * axis.y) * (1 - Math.cos(theta))), ((axis.y * axis.z * (1 - Math.cos(theta))) - (axis.x * Math.sin(theta))), 0],
+    [((axis.z * axis.x * (1 - Math.cos(theta))) - (axis.y * Math.sin(theta))), ((axis.z * axis.y * (1 - Math.cos(theta))) + (axis.y * Math.sin(theta))), Math.cos(theta) + ((axis.z * axis.z) * (1 - Math.cos(theta))), 0],
+    [0, 0, 0, 1]];
+    //console.log(test);
+    rotateMat4x4.values = test;
+    return rotateMat4x4;
+}
+
 // set values of existing 4x4 matrix to the shear parallel to the xy-plane matrix
 function Mat4x4ShearXY(mat4x4, shx, shy) {
     let shearMat4x4 = new Matrix(4, 4);
