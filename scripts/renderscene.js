@@ -114,7 +114,7 @@ function animate(timestamp, direction) {
                 //loop through every vertex
                 //transform each point
                 let originalVertex = scene.models[0].vertices[i];
-                let newVertex = Matrix.multiply([Mat4x4RotateX((time / 1000000) % 3), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                let newVertex = Matrix.multiply([Mat4x4RotateX(time / 1000 % (Math.PI/12)), originalVertex]); //create transformed verticies by multiplying by all initial matricies
                 scene.models[0].vertices[i] = newVertex;
                 //console.log(originalVertex);
                 //console.log(newVertex);
@@ -125,7 +125,7 @@ function animate(timestamp, direction) {
                 //loop through every vertex
                 //transform each point
                 let originalVertex = scene.models[0].vertices[i];
-                let newVertex = Matrix.multiply([Mat4x4RotateY((time / 1000000) % 3), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                let newVertex = Matrix.multiply([Mat4x4RotateY(time / 1000 % (Math.PI/12)), originalVertex]); //create transformed verticies by multiplying by all initial matricies
                 scene.models[0].vertices[i] = newVertex;
                 //console.log(originalVertex);
                 //console.log(newVertex);
@@ -136,7 +136,7 @@ function animate(timestamp, direction) {
                 //loop through every vertex
                 //transform each point
                 let originalVertex = scene.models[0].vertices[i];
-                let newVertex = Matrix.multiply([Mat4x4RotateZ((time / 1000000) % 3), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                let newVertex = Matrix.multiply([Mat4x4RotateZ(time / 1000 % (Math.PI/12)), originalVertex]); //create transformed verticies by multiplying by all initial matricies
                 scene.models[0].vertices[i] = newVertex;
                 //console.log(originalVertex);
                 //console.log(newVertex);
@@ -470,14 +470,38 @@ function onKeyDown(event) {
     //console.log(u.cross(n));
     u.normalize();
 
+    let v = n.cross(u);
+
     let prp = scene.view.prp;
 
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
+
+            for(i in scene.models[0].vertices) {
+                //loop through every vertex
+                //transform each point
+                let originalVertex = scene.models[0].vertices[i];
+                let newVertex = Matrix.multiply([Mat4x4RotateV(v, Math.PI / 32), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                scene.models[0].vertices[i] = newVertex;
+                //console.log(originalVertex);
+                //console.log(newVertex);
+            }
+
             break;
         case 39: // RIGHT Arrow
             console.log("right");
+
+            for(i in scene.models[0].vertices) {
+                //loop through every vertex
+                //transform each point
+                let originalVertex = scene.models[0].vertices[i];
+                let newVertex = Matrix.multiply([Mat4x4RotateV(v, -Math.PI / 32), originalVertex]); //create transformed verticies by multiplying by all initial matricies
+                scene.models[0].vertices[i] = newVertex;
+                //console.log(originalVertex);
+                //console.log(newVertex);
+            }
+
             break;
         case 65: // A key
             console.log("A");
