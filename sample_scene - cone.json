@@ -1,0 +1,23 @@
+{
+    "view": {
+        "type": "parallel",
+        "prp": [0, 0, 10],
+        "srp": [0, 0, 0],
+        "vup": [0, 1, 0],
+        "clip": [-4, 20, -1, 17, 5, 75]
+    },
+    "models": [
+        
+        {
+            "type": "cone",
+            "center": [12, 10, -49],
+            "radius": 1.5,
+            "height": 5,
+            "sides": 12,
+            "animation": {
+                "axis": "y",
+                "rps": 0.5
+            }
+        }
+    ]
+}
