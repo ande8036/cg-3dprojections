@@ -92,7 +92,7 @@ function init() {
 function animate(timestamp, direction) {
     // step 1: calculate time (time since start)
     timestamp = performance.now();
-    let time = start_time - timestamp;
+    let time = start_time + timestamp;
     //console.log(time);
     //console.log("direction: ", direction1);
     if(direction != undefined) {
@@ -100,7 +100,7 @@ function animate(timestamp, direction) {
     }
 
 
-
+    console.log(time / 1000);
     // step 2: transform models based on time
     // TODO: implement this!
     if(direction1 == "none"){
