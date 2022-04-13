@@ -605,15 +605,16 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector4(line.pt1.x, line.pt1.y, line.pt1.z, 1);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
+    console.log(out0, out1);
     let t = 0;
 
     let x0 = line.pt0.x;
     let y0 = line.pt0.y;
     let z0 = line.pt0.z;
 
-    let deltaX = line.pt1.x/line.pt0.x;
-    let deltaY = line.pt1.y/line.pt0.y;
-    let deltaZ = line.pt1.z/line.pt0.z;
+    let deltaX = line.pt1.x-line.pt0.x;
+    let deltaY = line.pt1.y-line.pt0.y;
+    let deltaZ = line.pt1.z-line.pt0.z;
 
 
     // TODO: implement clipping here!
@@ -626,127 +627,68 @@ function clipLinePerspective(line, z_min) {
 
     //case 2 both outside same edge, trivial reject
     
-    else if((out0 & LEFT) && (out1 & LEFT)){
-        console.log("case 2 left");
-        return result;
-    }
-    else if((out0 & RIGHT) && (out1 & RIGHT)){
-        console.log("case 2 right");
-        return result;
-    }
-    else if((out0 & BOTTOM) && (out1 & BOTTOM)){
-        console.log("case 2 bot");
-        return result;
-    }
-    else if((out0 & TOP) && (out1 & TOP)){
-        console.log("case 2 top");
-        return result;
-    }
-    else if((out0 & NEAR) && (out1 & NEAR)){
-        console.log("case 2 near");
-        return result;
-    }
-    else if((out0 & FAR) && (out1 & FAR)){
-        console.log("case 2 far");
+    else if((out0&out1) != 0){
         return result;
     }
 
     //case 3 0 inside 1 out
     else if(out1 != 0) { //if out1 is out
-        console.log("Case 3");
-        if((out0 & LEFT != LEFT) && ((out1 & LEFT) == LEFT)){ //out0 is not outside of left and out1 is
+        if((out1 & LEFT) == LEFT){ //out0 is not outside of left and out1 is
             t = (-x0 + z0)/(deltaX - deltaZ);
-            p1.x = line.pt1.z;
-            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & RIGHT != RIGHT) && ((out1 & RIGHT) == RIGHT)){ 
+        else if((out1 & RIGHT) == RIGHT){ 
             t = (x0 + z0)/(-deltaX - deltaZ);
-            p1.x = -line.pt1.z;
-            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & BOTTOM != BOTTOM) && ((out1 & BOTTOM) == BOTTOM)){ 
+        else if((out1 & BOTTOM) == BOTTOM){ 
             t = (-y0 + z0)/(deltaY - deltaZ);
-            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p1.y = line.pt1.z;
-            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & TOP != TOP) && ((out1 & TOP) == TOP)){
+        else if((out1 & TOP) == TOP){
             t = (y0 + z0)/(-deltaY - deltaZ);
-            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p1.y = -line.pt1.z;
-            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & NEAR != NEAR) && ((out1 & NEAR) == NEAR)){ 
+        else if((out1 & NEAR) == NEAR){ 
             t = (z0 - z_min)/(-deltaZ);
-            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p1.z = -1;
         } 
     
-        if((out0 & FAR != FAR) && ((out1 & FAR) == FAR)){ 
+        else if((out1 & FAR) == FAR){ 
             t = (-z0 - 1)/deltaZ;
-            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p1.z = z_min;
         } 
-        //p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        //p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-        //p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
 
     //case 4 0 out 1 in
     else if(out0 != 0){ //if out0 is outside
-        console.log("case 4");
-        if((out1 & LEFT != LEFT) && ((out0 & LEFT) == LEFT)){ 
+        if((out0 & LEFT) == LEFT){ 
             t = (-x0 + z0)/(deltaX - deltaZ);
-            p0.x = line.pt1.z;
-            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out1 & RIGHT != RIGHT) && ((out0 & RIGHT) == RIGHT)){ 
+        else if((out0 & RIGHT) == RIGHT){ 
             t = (x0 + z0)/(-deltaX - deltaZ);
-            p0.x = -line.pt1.z;
-            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out1 & BOTTOM != BOTTOM) && ((out0 & BOTTOM) == BOTTOM)){
+        else if((out0 & BOTTOM) == BOTTOM){
             t = (-y0 + z0)/(deltaY - deltaZ);
-            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p0.y = line.pt1.z;
-            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out1 & TOP != TOP) && ((out0 & TOP) == TOP)){ 
+        else if((out0 & TOP) == TOP){ 
             t = (y0 + z0)/(-deltaY - deltaZ);
-            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p0.y = -line.pt1.z;
-            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out1 & NEAR != NEAR) && ((out0 & NEAR) == NEAR)){ 
+        else if((out0 & NEAR) == NEAR){ 
             t = (z0 - z_min)/(-deltaZ);
-            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p0.z = -1;
         } 
     
-        if((out1 & FAR != FAR) && ((out0 & FAR) == FAR)){ 
+        else if((out0 & FAR) == FAR){ 
             t = (-z0 - 1)/deltaZ;
-            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-            p0.z = z_min;
         } 
-        //p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        //p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-        //p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
     result = {pt0: p0, pt1: p1};
     return result;
