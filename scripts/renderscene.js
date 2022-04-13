@@ -215,11 +215,13 @@ function drawScene() {
             }
         }
         else{
-            lines[i] = clipLinePerspective(line, z_min); //put back once clipping is working
-            lines[i]=line; //comment out when clip works
-            if(lines[i] != null) {
-                let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt0]); //transform each point
-                let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), lines[i].pt1]); //in homogeneous points
+            //console.log("preclip :", line);
+            line = clipLinePerspective(line, z_min); //put back once clipping is working
+            //console.log("postclip :", line);
+            //lines[i]=line; //comment out when clip works
+            if(line != null) {
+                let p02d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), line.pt0]); //transform each point
+                let p12d = Matrix.multiply([mat4x4ViewPort(view.width, view.height), mat4x4MPer(), line.pt1]); //in homogeneous points
                 drawLine(p02d.x/p02d.w, p02d.y/p02d.w, p12d.x/p12d.w, p12d.y/p12d.w); //convert to cartesian and draw line
             }
         }
@@ -311,7 +313,7 @@ function clipLineParallel(line) {
     }
 
     //case 3 0 inside 1 out
-    else if(out1 != 0) { //if out1 is out // t = (x -x0)/(x1-x0)
+    else if(out1 != 0) { //if out1 is out 
         if((out0 & LEFT != LEFT) && ((out1 & LEFT)) == LEFT){ //out0 is not outside of left and out1 is
             t = (0 - line.pt0.x)/(line.pt1.x -line.pt0.x);
         } 
@@ -351,108 +353,162 @@ function clipLineParallel(line) {
         p0 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
         p0 = ((1-t)*line.pt0.y) + (t*line.pt1.y);
     }
-    line = [[p0],[p1]];
-    return line;
+    result = {pt0: p0, pt1: p1};
+    return result;
 }
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) {
     let result = null;
-    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); //use p0 to change line
-    let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
+    let p0 = Vector4(line.pt0.x, line.pt0.y, line.pt0.z, 1); //use p0 to change line
+    let p1 = Vector4(line.pt1.x, line.pt1.y, line.pt1.z, 1);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
     let t = 0;
 
+    let x0 = line.pt0.x;
+    let y0 = line.pt0.y;
+    let z0 = line.pt0.z;
+
+    let deltaX = line.pt1.x/line.pt0.x;
+    let deltaY = line.pt1.y/line.pt0.y;
+    let deltaZ = line.pt1.z/line.pt0.z;
+
+
     // TODO: implement clipping here!
 
     let outCheck = out0|out1;
-    //case 1, both inside
+    //case 1, both inside, trivial accept
     if(outCheck == 0){
-        return line;
+        return {pt0: p0, pt1: p1};
     }
 
-    //case 2 both outside
+    //case 2 both outside same edge, trivial reject
+    
     else if((out0 & LEFT) && (out1 & LEFT)){
+        console.log("case 2 left");
         return result;
     }
     else if((out0 & RIGHT) && (out1 & RIGHT)){
+        console.log("case 2 right");
         return result;
     }
     else if((out0 & BOTTOM) && (out1 & BOTTOM)){
+        console.log("case 2 bot");
         return result;
     }
     else if((out0 & TOP) && (out1 & TOP)){
+        console.log("case 2 top");
         return result;
     }
     else if((out0 & NEAR) && (out1 & NEAR)){
+        console.log("case 2 near");
         return result;
     }
     else if((out0 & FAR) && (out1 & FAR)){
+        console.log("case 2 far");
         return result;
     }
 
     //case 3 0 inside 1 out
     else if(out1 != 0) { //if out1 is out
-        if((out0 & LEFT != LEFT) && ((out1 & LEFT)) == LEFT){ //out0 is not outside of left and out1 is
-            t = (-line.pt0.x + line.pt0.z)/((line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+        console.log("Case 3");
+        if((out0 & LEFT != LEFT) && ((out1 & LEFT) == LEFT)){ //out0 is not outside of left and out1 is
+            t = (-x0 + z0)/(deltaX - deltaZ);
+            p1.x = line.pt1.z;
+            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & RIGHT != RIGHT) && ((out1 & RIGHT)) == RIGHT){ 
-            t = (line.pt0.x + line.pt0.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+        if((out0 & RIGHT != RIGHT) && ((out1 & RIGHT) == RIGHT)){ 
+            t = (x0 + z0)/(-deltaX - deltaZ);
+            p1.x = -line.pt1.z;
+            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & BOTTOM != BOTTOM) && ((out1 & BOTTOM)) == BOTTOM){ 
-            t = (-line.pt0.y + line.pt0.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        if((out0 & BOTTOM != BOTTOM) && ((out1 & BOTTOM) == BOTTOM)){ 
+            t = (-y0 + z0)/(deltaY - deltaZ);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p1.y = line.pt1.z;
+            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & TOP != TOP) && ((out1 & TOP)) == TOP){
-            t = (line.pt0.y + line.pt0.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+        if((out0 & TOP != TOP) && ((out1 & TOP) == TOP)){
+            t = (y0 + z0)/(-deltaY - deltaZ);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p1.y = -line.pt1.z;
+            p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        if((out0 & NEAR != NEAR) && ((out1 & NEAR)) == NEAR){ 
-            t = (line.pt0.z - z_min)/(-(line.pt0.z/ line.pt1.z));
+        if((out0 & NEAR != NEAR) && ((out1 & NEAR) == NEAR)){ 
+            t = (z0 - z_min)/(-deltaZ);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p1.z = -1;
         } 
     
         if((out0 & FAR != FAR) && ((out1 & FAR) == FAR)){ 
-            t = (-line.pt0.z - 1)/((line.pt0.z/ line.pt1.z));
+            t = (-z0 - 1)/deltaZ;
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p1.z = z_min;
         } 
-        p1 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        p1 = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-        p1 = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        //p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        //p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        //p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
 
     //case 4 0 out 1 in
     else if(out0 != 0){ //if out0 is outside
+        console.log("case 4");
         if((out1 & LEFT != LEFT) && ((out0 & LEFT) == LEFT)){ 
-            t = (-line.pt0.x + line.pt0.z)/((line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+            t = (-x0 + z0)/(deltaX - deltaZ);
+            p0.x = line.pt1.z;
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
         if((out1 & RIGHT != RIGHT) && ((out0 & RIGHT) == RIGHT)){ 
-            t = (line.pt0.x + line.pt0.z)/(-(line.pt0.x/line.pt1.x) - (line.pt0.z/ line.pt1.z));
+            t = (x0 + z0)/(-deltaX - deltaZ);
+            p0.x = -line.pt1.z;
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
         if((out1 & BOTTOM != BOTTOM) && ((out0 & BOTTOM) == BOTTOM)){
-            t = (-line.pt0.y + line.pt0.z)/((line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+            t = (-y0 + z0)/(deltaY - deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = line.pt1.z;
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
         if((out1 & TOP != TOP) && ((out0 & TOP) == TOP)){ 
-            t = (line.pt0.y + line.pt0.z)/(-(line.pt0.y/line.pt1.y) - (line.pt0.z/ line.pt1.z));
+            t = (y0 + z0)/(-deltaY - deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = -line.pt1.z;
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
         if((out1 & NEAR != NEAR) && ((out0 & NEAR) == NEAR)){ 
-            t = (line.pt0.z - z_min)/(-(line.pt0.z/ line.pt1.z));
+            t = (z0 - z_min)/(-deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = -1;
         } 
     
         if((out1 & FAR != FAR) && ((out0 & FAR) == FAR)){ 
-            t = (-line.pt0.z - 1)/((line.pt0.z/ line.pt1.z));
+            t = (-z0 - 1)/deltaZ;
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = z_min;
         } 
-        p0 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        p0 = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-        p0 = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        //p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        //p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        //p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
-    line = [[p0],[p1]];
-    return line;
+    result = {pt0: p0, pt1: p1};
+    return result;
 }
 
 // Called when user presses a key on the keyboard down 
