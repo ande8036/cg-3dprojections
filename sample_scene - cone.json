@@ -1,6 +1,6 @@
 {
     "view": {
-        "type": "parallel",
+        "type": "perspective",
         "prp": [0, 0, 10],
         "srp": [0, 0, 0],
         "vup": [0, 1, 0],
