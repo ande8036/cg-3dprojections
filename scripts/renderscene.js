@@ -526,6 +526,12 @@ function clipLineParallel(line) {
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodeParallel(p0);
     let out1 = outcodeParallel(p1);
+
+    let x0 = line.pt0.x;
+    let y0 = line.pt0.y;
+
+    let deltaX = line.pt1.x-line.pt0.x;
+    let deltaY = line.pt1.y-line.pt0.y;
     
     // TODO: implement clipping here!
     let outCheck = out0|out1;
@@ -534,40 +540,25 @@ function clipLineParallel(line) {
     }
 
     //case 2 both outside
-    else if((out0 & LEFT) && (out1 & LEFT)){
-        return result;
-    }
-    else if((out0 & RIGHT) && (out1 & RIGHT)){
-        return result;
-    }
-    else if((out0 & BOTTOM) && (out1 & BOTTOM)){
-        return result;
-    }
-    else if((out0 & TOP) && (out1 & TOP)){
-        return result;
-    }
-    else if((out0 & NEAR) && (out1 & NEAR)){
-        return result;
-    }
-    else if((out0 & FAR) && (out1 & FAR)){
+    else if((out0&out1) != 0){
         return result;
     }
 
     //case 3 0 inside 1 out
     else if(out1 != 0) { //if out1 is out 
-        if((out0 & LEFT != LEFT) && ((out1 & LEFT)) == LEFT){ //out0 is not outside of left and out1 is
+        if((out1 & LEFT) == LEFT){ //out0 is not outside of left and out1 is
             t = (0 - line.pt0.x)/(line.pt1.x -line.pt0.x);
         } 
     
-        if((out0 & RIGHT != RIGHT) && ((out1 & RIGHT)) == RIGHT){ 
+        if((out1 & RIGHT) == RIGHT){ 
             t = (canvas.width - line.pt0.x )/(line.pt1.x -line.pt0.x);
         } 
     
-        if((out0 & BOTTOM != BOTTOM) && ((out1 & BOTTOM)) == BOTTOM){ 
+        if((out1 & BOTTOM) == BOTTOM){ 
             t = (0 - line.pt0.y)/(line.pt1.y -line.pt0.y);
         } 
     
-        if((out0 & TOP != TOP) && ((out1 & TOP)) == TOP){
+        if((out1 & TOP) == TOP){
             t = (canvas.height - line.pt0.y)/(line.pt1.y -line.pt0.y);
         } 
         p1 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
@@ -576,19 +567,19 @@ function clipLineParallel(line) {
 
     //case 4 0 out 1 in
     else if(out0 != 0){ //if out0 is outside
-        if((out1 & LEFT != LEFT) && ((out0 & LEFT) == LEFT)){ 
+        if((out0 & LEFT) == LEFT){ 
             t = (0 - line.pt0.x)/(line.pt1.x -line.pt0.x);
         } 
     
-        if((out1 & RIGHT != RIGHT) && ((out0 & RIGHT) == RIGHT)){ 
+        if((out0 & RIGHT) == RIGHT){ 
             t = (canvas.width - line.pt0.x )/(line.pt1.x -line.pt0.x);
         } 
     
-        if((out1 & BOTTOM != BOTTOM) && ((out0 & BOTTOM) == BOTTOM)){
+        if((out0 & BOTTOM) == BOTTOM){
             t = (0 - line.pt0.y)/(line.pt1.y -line.pt0.y);
         } 
     
-        if((out1 & TOP != TOP) && ((out0 & TOP) == TOP)){ 
+        if((out0 & TOP) == TOP){ 
             t = (canvas.height - line.pt0.y)/(line.pt1.y -line.pt0.y);
         } 
         p0 = ((1-t)*line.pt0.x) + (t*line.pt1.x);
@@ -605,7 +596,6 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector4(line.pt1.x, line.pt1.y, line.pt1.z, 1);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
-    console.log(out0, out1);
     let t = 0;
 
     let x0 = line.pt0.x;
@@ -635,60 +625,96 @@ function clipLinePerspective(line, z_min) {
     else if(out1 != 0) { //if out1 is out
         if((out1 & LEFT) == LEFT){ //out0 is not outside of left and out1 is
             t = (-x0 + z0)/(deltaX - deltaZ);
-        } 
-    
-        else if((out1 & RIGHT) == RIGHT){ 
-            t = (x0 + z0)/(-deltaX - deltaZ);
-        } 
-    
-        else if((out1 & BOTTOM) == BOTTOM){ 
-            t = (-y0 + z0)/(deltaY - deltaZ);
-        } 
-    
-        else if((out1 & TOP) == TOP){
-            t = (y0 + z0)/(-deltaY - deltaZ);
-        } 
-    
-        else if((out1 & NEAR) == NEAR){ 
-            t = (z0 - z_min)/(-deltaZ);
-        } 
-    
-        else if((out1 & FAR) == FAR){ 
-            t = (-z0 - 1)/deltaZ;
-        } 
-        p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
         p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
         p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        } 
+    
+        if((out1 & RIGHT) == RIGHT){ 
+            t = (x0 + z0)/(-deltaX - deltaZ);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        } 
+    
+        if((out1 & BOTTOM) == BOTTOM){ 
+            t = (-y0 + z0)/(deltaY - deltaZ);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        } 
+    
+        if((out1 & TOP) == TOP){
+            t = (y0 + z0)/(-deltaY - deltaZ);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        } 
+    
+        if((out1 & NEAR) == NEAR){ 
+            t = (z0 - z_min)/(-deltaZ);
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        } 
+    
+        if((out1 & FAR) == FAR){ 
+            t = (-z0 - 1)/deltaZ;
+            p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        } 
+        //p1.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        //p1.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        //p1.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
 
     //case 4 0 out 1 in
     else if(out0 != 0){ //if out0 is outside
         if((out0 & LEFT) == LEFT){ 
             t = (-x0 + z0)/(deltaX - deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        else if((out0 & RIGHT) == RIGHT){ 
+        if((out0 & RIGHT) == RIGHT){ 
             t = (x0 + z0)/(-deltaX - deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        else if((out0 & BOTTOM) == BOTTOM){
+        if((out0 & BOTTOM) == BOTTOM){
             t = (-y0 + z0)/(deltaY - deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        else if((out0 & TOP) == TOP){ 
+        if((out0 & TOP) == TOP){ 
             t = (y0 + z0)/(-deltaY - deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        else if((out0 & NEAR) == NEAR){ 
+        if((out0 & NEAR) == NEAR){ 
             t = (z0 - z_min)/(-deltaZ);
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
     
-        else if((out0 & FAR) == FAR){ 
+        if((out0 & FAR) == FAR){ 
             t = (-z0 - 1)/deltaZ;
+            p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+            p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+            p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
         } 
-        p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
-        p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
-        p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
+        //p0.x = ((1-t)*line.pt0.x) + (t*line.pt1.x);
+        //p0.y = ((1-t)*line.pt0.y) + (t*line.pt1.y);
+        //p0.z = ((1-t)*line.pt0.z) + (t*line.pt1.z);
     }
     result = {pt0: p0, pt1: p1};
     return result;
@@ -715,7 +741,7 @@ function onKeyDown(event) {
 
     switch (event.keyCode) {
         case 37: // LEFT Arrow
-            console.log("left");
+            //console.log("left");
 
             for(i in scene.models[0].vertices) {
                 //loop through every vertex
@@ -729,7 +755,7 @@ function onKeyDown(event) {
 
             break;
         case 39: // RIGHT Arrow
-            console.log("right");
+            //console.log("right");
 
             for(i in scene.models[0].vertices) {
                 //loop through every vertex
@@ -743,7 +769,7 @@ function onKeyDown(event) {
 
             break;
         case 65: // A key
-            console.log("A");
+            //console.log("A");
 
             //prp.scale(10);
 
@@ -756,7 +782,7 @@ function onKeyDown(event) {
             
             break;
         case 68: // D key
-            console.log("D");
+            //console.log("D");
 
             //prp.scale(10);
 
@@ -767,7 +793,7 @@ function onKeyDown(event) {
             
             break;
         case 83: // S key
-            console.log("S");
+            //console.log("S");
 
             //prp.scale(10);
 
@@ -777,7 +803,7 @@ function onKeyDown(event) {
             drawScene();
             break;
         case 87: // W key
-            console.log("W");
+            //console.log("W");
 
             //prp.scale(10);
 
@@ -801,7 +827,7 @@ function onKeyDown(event) {
 function loadNewScene() {
     let scene_file = document.getElementById('scene_file');
 
-    console.log(scene_file.files[0]);
+    //console.log(scene_file.files[0]);
 
     let reader = new FileReader();
     reader.onload = (event) => {
