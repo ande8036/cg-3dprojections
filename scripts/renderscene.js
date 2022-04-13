@@ -405,6 +405,7 @@ function drawScene() {
             }*/
 
         }
+    }
     let transform;
 
     if(scene.view.type == 'parallel'){
