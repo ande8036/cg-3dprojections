@@ -70,7 +70,7 @@ function init() {
             }
         ]
     };
-    originalVertices = scene.models[0].vertices;
+    originalVertices = scene.models;
 
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
@@ -79,7 +79,7 @@ function init() {
     window.requestAnimationFrame(animate);
 
     document.getElementById("none").onclick = function() {
-        scene.models[0].vertices = originalVertices;
+        scene.models = originalVertices;
         animate(performance.now(), "none");
     };
     document.getElementById("x").onclick = function() {animate(performance.now(), "x") };
@@ -171,6 +171,240 @@ function drawScene() {
     //  * draw line
 
     //change prp to perspective
+    for(k in scene.models) {
+        if(scene.models[k].edges == undefined) {
+            scene.models[k].edges = [];
+        }
+
+        if(scene.models[k].type == "cube") {
+            
+            let center = scene.models[k].center;
+            let radius = scene.models[k].width;
+            
+            scene.models[k].vertices = [];
+
+            scene.models[k].vertices.push(Vector4(center.x + radius, center.y + radius, center.z + radius,1));
+            scene.models[k].vertices.push(Vector4(center.x + radius, center.y - radius, center.z + radius,1));
+            scene.models[k].vertices.push(Vector4(center.x - radius, center.y + radius, center.z + radius,1));
+            scene.models[k].vertices.push(Vector4(center.x - radius, center.y - radius, center.z + radius,1));
+            scene.models[k].vertices.push(Vector4(center.x + radius, center.y + radius, center.z - radius,1));
+            scene.models[k].vertices.push(Vector4(center.x + radius, center.y - radius, center.z - radius,1));
+            scene.models[k].vertices.push(Vector4(center.x - radius, center.y + radius, center.z - radius,1));
+            scene.models[k].vertices.push(Vector4(center.x - radius, center.y - radius, center.z - radius,1));
+            //console.log(scene.models[k].vertices);
+
+            scene.models[k].edges = [];
+
+            scene.models[k].edges.push([0, 4, 5, 1, 0]);
+            scene.models[k].edges.push([2, 6, 7, 3, 2]);
+            scene.models[k].edges.push([0, 2]);
+            scene.models[k].edges.push([4, 6]);
+            scene.models[k].edges.push([5, 7]);
+            scene.models[k].edges.push([1, 3]);
+            //console.log(scene.models[k].edges.length);
+            
+        } else if(scene.models[k].type == "cylinder") {
+            let center = scene.models[k].center;
+            let radius = scene.models[k].radius;
+            let height = scene.models[k].height;
+            let sides = scene.models[k].sides;
+
+            scene.models[k].vertices = [];
+            scene.models[k].edges = [];
+
+            
+            let numPoints = sides;
+            //console.log(numPoints);
+
+            let degreeChange = Math.PI * 2 / numPoints;
+            let degreeCounter = 0;
+            let currentX = 0;
+            let currentY = 0;
+            //console.log(Math.cos(30));
+
+            for(let i = 0; i < numPoints; i++) {//get array of points
+                //console.log(degreeCounter);
+                currentX = center.x + (radius * Math.cos(degreeCounter));
+                currentY = center.y + (radius * Math.sin(degreeCounter));
+                scene.models[k].vertices.push(Vector4(currentX, currentY, center.z + (height / 2),1));
+
+                degreeCounter += degreeChange;
+            }
+
+            //console.log(pointArray);
+
+            for(let i = 0; i < numPoints - 1; i++) {
+                //console.log("test");
+                scene.models[k].edges.push([i, i + 1]);
+            }
+            scene.models[k].edges.push([sides - 1, 0]);
+        
+            //console.log(scene.models[k].edges);
+            //console.log(scene.models[k].vertices);
+
+            degreeChange = Math.PI * 2 / numPoints;
+            degreeCounter = 0;
+            currentX = 0;
+            currentY = 0;
+            //console.log(Math.cos(30));
+
+            for(let i = 0; i < numPoints; i++) {//get array of points
+                //console.log(degreeCounter);
+                currentX = center.x + (radius * Math.cos(degreeCounter));
+                currentY = center.y + (radius * Math.sin(degreeCounter));
+                scene.models[k].vertices.push(Vector4(currentX, currentY, center.z - (height / 2),1));
+
+                degreeCounter += degreeChange;
+            }
+
+            //console.log(pointArray);
+
+            for(let i = numPoints; i < numPoints - 1 + numPoints; i++) {
+                //console.log("test");
+                scene.models[k].edges.push([i, i + 1]);
+            }
+            scene.models[k].edges.push([numPoints + sides - 1, numPoints]);
+
+            for(let i = 0; i < numPoints; i++) {
+                scene.models[k].edges.push([i, i + numPoints]);
+            }
+
+        } else if(scene.models[k].type == "cone") {
+            let center = scene.models[k].center;
+            let radius = scene.models[k].radius;
+            let height = scene.models[k].height;
+            let sides = scene.models[k].sides;
+
+            scene.models[k].vertices = [];
+            scene.models[k].edges = [];
+
+            
+            let numPoints = sides;
+            //console.log(numPoints);
+
+            let degreeChange = Math.PI * 2 / numPoints;
+            let degreeCounter = 0;
+            let currentX = 0;
+            let currentY = 0;
+            //console.log(Math.cos(30));
+
+            for(let i = 0; i < numPoints; i++) {//get array of points
+                //console.log(degreeCounter);
+                currentX = center.x + (radius * Math.cos(degreeCounter));
+                currentY = center.y + (radius * Math.sin(degreeCounter));
+                scene.models[k].vertices.push(Vector4(currentX, currentY, center.z,1));
+
+                degreeCounter += degreeChange;
+            }
+
+            //console.log(pointArray);
+
+            for(let i = 0; i < numPoints - 1; i++) {
+                //console.log("test");
+                scene.models[k].edges.push([i, i + 1]);
+            }
+            scene.models[k].edges.push([sides - 1, 0]);
+        
+            //console.log(scene.models[k].edges);
+            //console.log(scene.models[k].vertices);
+
+            scene.models[k].vertices.push(Vector4(center.x, center.y, center.z + height,1));
+
+            for(let i = 0; i < numPoints; i++) {
+                //console.log("test");
+                scene.models[k].edges.push([i, sides]);
+            }
+
+        }else if(scene.models[k].type == "sphere") {
+            let center = scene.models[k].center;
+            let radius = scene.models[k].radius;
+            let slices = scene.models[k].slices;
+            let stacks = scene.models[k].stacks;
+
+            scene.models[k].vertices = [];
+            scene.models[k].edges = [];
+
+            
+            let numPoints = slices;
+            //console.log(numPoints);
+
+            let degreeChange = Math.PI * 2 / numPoints;
+            let degreeCounter = 0;
+            let currentX = 0;
+            let currentY = 0;
+            //console.log(Math.cos(30));
+
+            for(let i = 0; i < numPoints; i++) {//get array of points
+                //console.log(degreeCounter);
+                currentX = center.x + (radius * Math.cos(degreeCounter));
+                currentY = center.y + (radius * Math.sin(degreeCounter));
+                scene.models[k].vertices.push(Vector4(currentX, currentY, center.z,1));
+
+                degreeCounter += degreeChange;
+            }
+
+            //console.log(pointArray);
+
+            for(let i = 0; i < numPoints - 1; i++) {
+                //console.log("test");
+                scene.models[k].edges.push([i, i + 1]);
+            }
+            scene.models[k].edges.push([numPoints - 1, 0]);
+
+            let prevNumPoints = numPoints
+
+            numPoints = stacks;
+            degreeChange = Math.PI * 2 / numPoints;
+            degreeCounter = 0;
+            currentX = 0;
+            currentY = 0;
+
+
+
+            for(let i = 0; i < numPoints; i++) {//get array of points
+                //console.log(degreeCounter);
+                currentX = center.z + (radius * Math.cos(degreeCounter));
+                currentY = center.y + (radius * Math.sin(degreeCounter));
+                scene.models[k].vertices.push(Vector4(center.x, currentY, currentX,1));
+
+                degreeCounter += degreeChange;
+            }
+            
+            //console.log(pointArray);
+
+            for(let i = prevNumPoints; i < numPoints + prevNumPoints - 1; i++) {
+                //console.log("test");
+                scene.models[k].edges.push([i, i + 1]);
+            }
+            scene.models[k].edges.push([numPoints + prevNumPoints - 1, prevNumPoints]);
+        
+            //console.log(scene.models[k].vertices);
+            //console.log(scene.models[k].edges);
+
+            /*degreeChange = Math.PI * 2 / prevNumPoints;
+            degreeCounter = 0;
+            currentX = 0;
+            currentY = 0;
+
+            for(let i = 0; i < prevNumPoints; i++) {
+                if(!(i == 0 || i == prevNumPoints - 1)) {
+                    for(let j = 0; j < numPoints; j++) {//get array of points
+                        //console.log(degreeCounter);
+                        currentX = center.x + (Math.abs(scene.models[k].vertices[i].x - center.x) * Math.cos(degreeCounter));
+                        currentY = center.z + (Math.abs(scene.models[k].vertices[i].x - center.x) * Math.sin(degreeCounter));
+                        scene.models[k].vertices.push(Vector4(currentX, scene.models[k].vertices[j].y, currentY,1));
+        
+                        degreeCounter += degreeChange;
+                    }
+                    for(let j = prevNumPoints + numPoints; j < numPoints + prevNumPoints + prevNumPoints - 1; j++) {
+                        //console.log("test");
+                        scene.models[k].edges.push([j, j + 1]);
+                    }
+                    scene.models[k].edges.push([prevNumPoints + numPoints + prevNumPoints - 1, 2*prevNumPoints]);
+                } 
+            }*/
+
+        }
     let transform;
 
     if(scene.view.type == 'parallel'){
